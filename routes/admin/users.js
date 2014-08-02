@@ -3,9 +3,7 @@ var router = express.Router({ strict: true });
 var path = require('path');
 
 router.get('/', function(req, res, next) {
-	if (req.data.authenticationValidator(req, res)) {
-		req.data.optionLoader('title', 'maxRows')(req, res, next);
-	}
+	req.data.requireUser(req, res, req.data.optionLoader('title', 'maxRows'), next);
 }, function(req, res) {
 	var table = {
 		plural: "accounts",
@@ -38,9 +36,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/new', function(req, res, next) {
-	if (req.data.authenticationValidator(req, res)) {
-		req.data.optionLoader('title')(req, res, next);
-	}
+	req.data.requireUser(req, res, req.data.optionLoader('title'), next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	var user = new User();
@@ -48,7 +44,7 @@ router.get('/new', function(req, res, next) {
 });
 
 router.post('/new', function(req, res, next) {
-	req.data.authenticationValidator(req, res, next);
+	req.data.requireUser(req, res, next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	var user = new User();
@@ -74,9 +70,7 @@ router.post('/new', function(req, res, next) {
 });
 
 router.get('/:id', function(req, res, next) {
-	if (req.data.authenticationValidator(req, res)) {
-		req.data.optionLoader('title')(req, res, next);
-	}
+	req.data.requireUser(req, res, req.data.optionLoader('title'), next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	User.findById(req.params.id, function(err, user) {
@@ -89,7 +83,7 @@ router.get('/:id', function(req, res, next) {
 });
 
 router.get('/:id/deactivate', function(req, res, next) {
-	req.data.authenticationValidator(req, res, next);
+	req.data.requireUser(req, res, next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	
@@ -106,7 +100,7 @@ router.get('/:id/deactivate', function(req, res, next) {
 	});
 });
 router.get('/:id/activate', function(req, res, next) {
-	req.data.authenticationValidator(req, res, next);
+	req.data.requireUser(req, res, next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	
@@ -124,7 +118,7 @@ router.get('/:id/activate', function(req, res, next) {
 });
 
 router.post('/:id', function(req, res, next) {
-	req.data.authenticationValidator(req, res, next);
+	req.data.requireUser(req, res, next);
 }, function(req, res, next) {
 	var User = req.data.model('User');
 

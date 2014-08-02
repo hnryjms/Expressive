@@ -9,7 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 //var Dust = require('')
 
 var PassportLocalStrategy = require('passport-local');
-var Mongoose = require('mongoose-paginate');
+var Mongoose = require('mongoose');
 var Session = require('express-session');
 var MongoStore = require('connect-mongo')(Session);
 
@@ -21,7 +21,9 @@ var Data = function(config) {
 	var defaults = require('./defaults.json');
 	var session = Session({
 		secret: 'expressive-fothzxhcgl9wiks',
-		key: 'expressive.session'
+		key: 'expressive.session',
+		saveUninitialized: false,
+		resave: false
 	});
 	var mailConfig = config.mail || {
 		transport: 'sendmail'

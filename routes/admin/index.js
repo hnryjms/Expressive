@@ -121,6 +121,12 @@ router.use(function(req, res, next) {
 });
 
 router.use(function(err, req, res, next) {
+    if (err.status == 401) {
+        res.redirect('/admin/login?next=' + encodeURIComponent(req.originalUrl));
+    } else next(err);
+});
+
+router.use(function(err, req, res, next) {
 	req.data.optionLoader('title')(req, res, function(){
 		res.render('admin/error', {
 			title: 'Error',

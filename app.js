@@ -91,7 +91,7 @@ app.set('view engine', 'jade');
 
 app.use(favicon());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(data.session());
 app.use(csrf());
