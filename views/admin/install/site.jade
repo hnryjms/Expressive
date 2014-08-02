@@ -1,0 +1,81 @@
+extends ../layout
+
+block layout_variables
+	- var navigation = false;
+
+block content
+	#install
+		.row
+			.col-sm-3
+				if config.quick
+					.list-group#progress
+						a.list-group-item.active(href='/install/site')
+							h4 1. Website
+						if options.title
+							a.list-group-item(href='/install/done')
+								h4 2. Done!
+						else
+							.list-group-item.text-muted
+								h4 2. Done!
+				else
+					.list-group#progress
+						a.list-group-item(href='/install/database')
+							h4 1. Database
+						a.list-group-item.active(href='/install/site')
+							h4 2. Website
+						if options.title
+							a.list-group-item(href='/install/done')
+								h4 3. Done!
+						else
+							.list-group-item.text-muted
+								h4 3. Done!
+			.col-sm-9
+				h1 Get Expressive.
+				p.lead Your new Expressive website is waiting for you. Just set up a few last things and you'll be ready to create cooler, faster websites easily.
+
+				each error in flash('error')
+					.alert.alert-danger
+						p= error
+
+				form.form-horizontal#install-form(method='post', action='/install/site')
+					input(type='hidden', name='_csrf', value=req.csrfToken())
+					.form-group
+						label.col-sm-2.control-label(for='title') Site Title
+						.col-sm-10
+							input.form-control#title(type='text', name='title', placeholder='Expressiveness', value=options.title, autofocus=!options.title)
+					.form-group
+						.col-sm-offset-2.col-sm-10
+							.radio
+								label
+									input(type='radio', name='home', value='site_only')
+									| This website does <strong>not</strong> include a blog.
+							.radio
+								label
+									input(type='radio', name='home', value='blog')
+									| This website <strong>is</strong> a blog.
+							.radio
+								label
+									input(type='radio', name='home', value='site_blog')
+									| This website <strong>includes</strong> a blog.
+					.form-group
+						label.col-sm-2.control-label(for='first_name') Your Name
+						.col-sm-10
+							.row
+								.col-xs-6
+									input.form-control#first_name(name='name.first', placeholder='John', value=user.name.first)
+								.col-xs-6
+									input.form-control#last_name(name='name.last', placeholder='Doe', value=user.name.last)
+					.form-group
+						label.col-sm-2.control-label(for='email') Your Email
+						.col-sm-10
+							input.form-control#email(type='email', name='email', placeholder='john@expressiveness.com', value=user.email)
+					.form-group
+						label.col-sm-2.control-label(for='password') Password
+						.col-sm-10
+							.row
+								.col-sm-6
+									input.form-control#password(type='password', name='password')
+								.col-sm-6
+									input.form-control#password_again(type='password', name='password_again', placeholder='(and password again)')
+					p.text-right
+						button.btn.btn-primary(type='submit') Create Website &rarr;

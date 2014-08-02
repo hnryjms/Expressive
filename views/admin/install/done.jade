@@ -1,0 +1,31 @@
+extends ../layout
+
+block layout_variables
+	- var navigation = false;
+
+block content
+	#install
+		.row
+			.col-sm-3
+				if config.quick
+					.list-group#progress
+						a.list-group-item.active(href='/install/site')
+							h4 1. Website
+						a.list-group-item.active(href='/install/site')
+							h4 2. Done!
+				else
+					.list-group#progress
+						a.list-group-item(href='/install/database')
+							h4 1. Database
+						a.list-group-item(href='/install/site')
+							h4 2. Website
+						a.list-group-item.active(href='/install/done')
+							h4 3. Done!
+			.col-sm-9
+				h1 You're Ready.
+				p.lead Feeling great yet? Expressive will help you publish a cooler, faster website easily. You can see how it works below, or just <a href="/">get started</a> right now.
+
+				p.text-center.text-muted(style='padding: 180px 0;') Tutorials will go here.
+
+				p.text-center
+					a.btn.btn-lg.btn-primary(href='/') Get Started Now

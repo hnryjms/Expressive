@@ -1,0 +1,56 @@
+extends ../layout
+
+block layout_variables
+	- var navigation = false;
+
+block content
+	#install
+		.row
+			.col-sm-3
+				.list-group#progress
+					a.list-group-item.active(href='/install/database')
+						h4 1. Database
+					if isConfigured
+						a.list-group-item.text-muted(href='/install/site')
+							h4 2. Website
+					else
+						.list-group-item.text-muted
+							h4 2. Website
+					if options.title
+						a.list-group-item(href='/install/done')
+							h4 3. Done!
+					else
+						.list-group-item.text-muted
+							h4 3. Done!
+			.col-sm-9
+				h1 Welcome to Expressive.
+				p.lead Expressive helps you build cooler, faster websites easily. To get going, you just need to give us some database information.
+				p Often times we can guess this information correctly, but if you can't get things working, contact your server manager or web host for MongoDB details. You might need to pay for an online MongoDB database like <a href="https://mongolab.com/" target="_blank">MongoLab</a>. If the grayed defaults below look okay, you can just click the next button right now.
+				each error in flash('error')
+					.alert.alert-danger
+						p= error
+				form.form-horizontal#install-form(method='post', action='/install/database')
+					input(type='hidden', name='_csrf', value=req.csrfToken())
+					.form-group
+						label.col-sm-2.control-label(for='host') Host &amp; Port
+						.col-sm-10
+							.row
+								.col-xs-9
+									input.form-control#host(type='text', name='host', placeholder='127.0.0.1 or localhost', value=config.host, autofocus=!config.host)
+								.col-xs-3
+									input.form-control#port(type='text', name='port', placeholder='27017', value=config.port)
+					.form-group
+						label.col-sm-2.control-label(for='database') Database
+						.col-sm-10
+							input.form-control#database(type='text', name='database', placeholder='expressive', value=config.database)
+					.form-group
+						label.col-sm-2.control-label(for='user') Authentication
+						.col-sm-10
+							.col-sm-10
+							.row
+								.col-sm-6
+									input.form-control#user(type='text', name='user', placeholder='Username', value=config.options.user)
+								.col-sm-6
+									input.form-control#pass(type='password', name='pass', placeholder='Password', value=config.options.pass)
+					p.text-right
+						button.btn.btn-primary(type='submit') Check Database and Move On &rarr;

@@ -1,0 +1,59 @@
+block layout_variables
+
+nav.navbar.navbar-default.navbar-static-top#expressive-navigation
+	.container
+		.navbar-header
+			a.navbar-brand(href='/')= options.title
+		#expressive-items
+			ul.nav.navbar-nav
+				each item in adminBar.leftItems
+					li(class=_expNavMatches(active, item.active)?'active':'', class=item.className, class=item.submenu?'dropdown':'')
+						a(href=item.href)= item.title
+							if item.submenu
+								|  
+								span.caret
+						if item.submenu
+							ul.dropdown-menu
+								each subitem in item.submenu
+									if subitem.id
+										// Block section
+										each sectItem in subitem.items
+											li(class=_expNavMatches(active, sectItem.active)?'active':'', class=sectItem.divider?'divider':'')
+												unless sectItem.divider
+													a(href=sectItem.href)= sectItem.title
+												if sectItem.new
+													a.new-item(href=typeof sectItem.new == 'string' ? sectItem.new : sectItem.new.href)= sectItem.new.title ? sectItem.new.title : 'New'
+										unless subitem.hidesDivider || item.submenu.indexOf(subitem) == item.submenu.length-1 || subitem.items.length == 0
+											li.divider
+									else
+										li(class=_expNavMatches(active, subitem.active)?'active':'', class=subitem.divider?'divider':'')
+											unless subitem.divider
+												a(href=subitem.href)= subitem.title
+											if subitem.new
+												a.new-item(href=typeof subitem.new == 'string' ? subitem.new : subitem.new.href)= subitem.new.title ? subitem.new.title : 'New'
+			ul.nav.navbar-nav.navbar-right
+				each item in adminBar.rightItems
+					li(class=_expNavMatches(active, item.active)?'active':'', class=item.className, class=item.submenu?'dropdown':'')
+						a(href=item.href)= item.title
+							if item.submenu
+								|  
+								span.caret
+						if item.submenu
+							ul.dropdown-menu
+								each subitem in item.submenu
+									if subitem.id
+										// Block section
+										each sectItem in subitem.items
+											li(class=_expNavMatches(active, sectItem.active)?'active':'', class=sectItem.divider?'divider':'')
+												unless sectItem.divider
+													a(href=sectItem.href)= sectItem.title
+												if sectItem.new
+													a.new-item(href=typeof sectItem.new == 'string' ? sectItem.new : sectItem.new.href)= sectItem.new.title ? sectItem.new.title : 'New'
+										unless subitem.hidesDivider || item.submenu.indexOf(subitem) == item.submenu.length-1 || subitem.items.length == 0
+											li.divider
+									else
+										li(class=_expNavMatches(active, subitem.active)?'active':'', class=subitem.divider?'divider':'')
+											unless subitem.divider
+												a(href=subitem.href)= subitem.title
+											if subitem.new
+												a.new-item(href=typeof subitem.new == 'string' ? subitem.new : subitem.new.href)= subitem.new.title ? subitem.new.title : 'New'

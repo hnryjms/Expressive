@@ -1,0 +1,17 @@
+extends layout
+
+block content
+	h1 Accounts <a href="/admin/users/new" class="btn btn-default">Add New</a>
+	p.lead Accounts let you give more people access to manage your website.
+
+	- var errors = flash('error');
+	- var successes = flash('success');
+
+	each error in errors
+		.alert.alert-danger
+			p= error
+	each success in successes
+		.alert.alert-success
+			p= success
+
+	include _table

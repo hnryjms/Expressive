@@ -1,0 +1,17 @@
+block layout_variables
+
+doctype html
+html
+	head
+		title!= title + (options.title ? (' › ' + options.title) : ' Expressive')
+		link(rel='stylesheet', href='/stylesheets/admin.css')
+		meta(name='X-UA-Compatible', content='IE=edge')
+		meta(name='viewport', content='width=device-width, initial-scale=1, user-scalable=no')
+
+		block head
+	body
+		if me && navigation !== false
+			include _navigation
+
+		.container
+			block content

@@ -1,0 +1,28 @@
+extends layout
+
+block content
+	- var errors = flash('error');
+	- var successes = flash('success');
+
+	#login-panel.panel(class=errors.length > 0 ? 'panel-danger' : '', class=successes.length > 0 ? 'panel-success' : '', class=errors.length == 0 && successes.length == 0 ? 'panel-default' : '')
+			.panel-heading
+				h3.panel-title= options.title
+			.panel-body
+				each error in errors
+					.alert.alert-danger
+						p= error
+				each success in successes
+					.alert.alert-success
+						p= success
+				form(method='post', action='/admin/forgot')
+					input(type='hidden', name='_csrf', value=req.csrfToken())
+					input(type='hidden', name='id', value=user.id)
+					input(type='hidden', name='rid', value=user.rid)
+					.form-group
+						label(for='password') New password
+						input.form-control#password(type='password', name='password', autofocus)
+					.form-group
+						label(for='password2') New password (again)
+						input.form-control#password2(type='password', name='password_again')
+					p.text-right
+						button.btn.btn-primary(type='submit') Save &rarr;

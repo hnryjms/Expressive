@@ -1,0 +1,55 @@
+extends layout
+
+block head
+	script(type='text/javascript', src='/javascripts/account.js')
+
+block content
+	- var errors = flash('error');
+	- var successes = flash('success');
+
+	#account-panel.panel(class=errors.length > 0 ? 'panel-danger' : '', class=successes.length > 0 ? 'panel-success' : '', class=errors.length == 0 && successes.length == 0 ? 'panel-default' : '')
+		.panel-heading
+			h3.panel-title= user.name.full
+		.panel-body
+			each error in errors
+				.alert.alert-danger
+					p= error
+			each success in successes
+				.alert.alert-success
+					p= success
+			form(method='post', action=isNew ? '/admin/users/new' : '/admin/users/' + user.id)
+				input(type='hidden', name='_csrf', value=req.csrfToken())
+				.form-group
+					label(for='firstname') First name
+					input.form-control#firstname(type='text', name='name.first', value=user.name.first, autofocus=user.name.first===undefined)
+				.form-group
+					label(for='lastname') Last name
+					input.form-control#lastname(type='text', name='name.last', value=user.name.last)
+				.form-group.divider
+				.form-group
+					label(for='email') Email address
+					input.form-control#email(type='email', name='email', value=user.email)
+				if user.id == me.id
+					p.hidden#cplink
+						a(href="#") Change password <span class="caret"></span>
+					#changepassword.form-group
+						.form-group
+							label(for='password') New password
+							input.form-control#password(type='password', name='new_password')
+						.form-group
+							label(for='password2') New password (again)
+							input.form-control#password2(type='password', name='new_password2')
+						.form-group
+							label(for='opassword') Current password
+							input.form-control#opassword(type='password', name='password')
+				else
+					.form-group.divider
+					.checkbox
+						label
+							input#active(type='checkbox', name='active', value='true', checked=user.active)
+							| Active <span class="text-muted">(can currently log in)</span>
+					if !user.password && !user.rid
+						#mailpassword
+							p We'll send an email to this person asking them to create a new password.
+				p.text-right
+					button.btn.btn-primary(type='submit') Save &rarr;
