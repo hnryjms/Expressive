@@ -3,6 +3,7 @@ var Mixed = Schema.Types.Mixed;
 var ObjectId = Schema.Types.ObjectId;
 
 var Hash = require('password-hash');
+var Paginate = require('mongoose-paginate');
 
 var debug = require('debug')('expressive:schemas');
 
@@ -93,6 +94,8 @@ userSchema.virtual('name.full').get(function(){
 	}
 	return this.name.first + ' ' + this.name.last;
 });
+
+userSchema.plugin(Paginate);
 
 module.exports = {
 	Option: optionSchema,
