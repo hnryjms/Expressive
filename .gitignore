@@ -1,8 +1,8 @@
 # Expressive-specific
 
-node_modueles/*
-public/resources/*
-build/*
+node_modules
+public/resources
+build
 
 # Standard .gitignore Files
 
