@@ -145,9 +145,11 @@ for (var engine in data.engines) {
     debug('Adding alternate view engine %s', engine);
     app.engine(engine, data.engines[engine]);
 }
+
 app.use(function(req, res, next) {
     var config = require('./package.json').config || { options: {} };
 
+    app._prepare(req, res);
     req.data = data;
     req.passport = passport;
     res.locals.config = config;
@@ -309,7 +311,6 @@ app.use(function(req, res, next) {
         if (i >= middleware.length) {
             next();
         } else {
-            app._prepare(req, res);
             middleware[i](req, res, function(err) {
                 req.__proto__ = orig.request;
                 res.__proto__ = orig.response;

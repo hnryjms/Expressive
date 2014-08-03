@@ -19,12 +19,7 @@ var Data = function(config) {
 	var schemas = require('./schemas.js');
 	var data = this;
 	var defaults = require('./defaults.json');
-	var session = Session({
-		secret: 'expressive-fothzxhcgl9wiks',
-		key: 'expressive.session',
-		saveUninitialized: false,
-		resave: false
-	});
+	var session = function(req, res, next) { req.session = {}; next(); };
 	var mailConfig = config.mail || {
 		transport: 'sendmail'
 	}
