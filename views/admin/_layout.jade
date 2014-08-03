@@ -1,0 +1,14 @@
+block layout_variables
+include _mixins
+
+doctype html
+html
+	head
+		title!= title + (options.title ? (' › ' + options.title) : ' Expressive')
+
+		+head({ fullAdminStyle: true })
+	body
+		+navigation
+
+		.container
+			block content

@@ -14,6 +14,11 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.use(function(req, res, next) {
+	res.locals.parent = req.parent;
+	next();
+})
+
 app.use(favicon());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());

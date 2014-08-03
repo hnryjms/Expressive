@@ -1,0 +1,15 @@
+mixin head(options)
+	- if (options == undefined) options = {};
+	if options.fullAdminStyle
+		meta(name='X-UA-Compatible', content='IE=edge')
+		meta(name='viewport', content='width=device-width, initial-scale=1, user-scalable=no')
+		link(rel='stylesheet', href='/stylesheets/admin.css')
+	else if me
+		link(rel='stylesheet', href='/stylesheets/admin-bar.css')
+
+	each header in enqueuedHeader
+		!= header.generate()
+
+mixin navigation
+	if me
+		include _navigation

@@ -77,6 +77,8 @@ data.once('ready', function(){
                         var extension = JSON.parse(json);
                         extensions.push(path.join(dirs[i], extension.main || 'app.js'));
                         next(++i);
+                    } else {
+                        next(++i);
                     }
                 });
             }
@@ -162,6 +164,7 @@ app.use(function(req, res, next) {
                     (item instanceof RegExp && active.match(item))
                 );
     }
+    res.locals.enqueuedHeader = [];
     if (req.user) {
         res.locals.me = req.user
         

@@ -1,7 +1,13 @@
+include ../../expressive
+
 doctype html
 html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+	head
+		title= title
+
+		+head({ fullAdminStyle: true })
+	body
+		+navigation
+
+		.container
+			block content

@@ -4,14 +4,14 @@ var _ = require('underscore');
 
 var Actions = function(app) {
 	this._app = app;
-}
+};
 
 Actions.prototype._prepare = function(req, res) {
 	req.parent = this;
 
 	this._req = req;
 	this._res = res;
-}
+};
 
 Actions.prototype.addMenu = function(location, items) {
 	if (typeof location == 'object') {
@@ -57,11 +57,24 @@ Actions.prototype.addMenu = function(location, items) {
 			};
 		}
 	}
-}
+};
 
 Actions.prototype.requireUser = function(role) {
 	// TODO: Role-based authentication
 	return this._req.data.requireUser;
-}
+};
+
+Actions.prototype.requireOptions = function() {
+	var args = Array.prototype.slice.call(arguments, 0);
+	return this._req.data.optionLoader.apply(null, args);
+};
+
+Actions.prototype.registerResource = function(name, options) {
+	
+};
+
+Actions.prototype.enqueueResource = function(name, options) {
+	
+};
 
 module.exports = Actions;
