@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "postinstall": "node_modules/.bin/bower install"
+    "test": "npm install && ./node_modules/.bin/mocha ./bin/test",
+    "postinstall": "./node_modules/.bin/bower install"
   },
   "dependencies": {
     "body-parser": "^1.5.2",
@@ -63,5 +64,9 @@
     "port": 27017,
     "database": "expressive",
     "installed": true
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^1.21.3"
   }
 }

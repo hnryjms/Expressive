@@ -1,5 +1,25 @@
 {
+  "name": "Expressive",
+  "version": "0.0.1",
+  "authors": [
+    "z43 Studio <hello@z43studio.com>"
+  ],
+  "description": "CMS in Node",
+  "main": "bin/www",
+  "keywords": [
+    "CMS"
+  ],
+  "license": "Copyright 2014",
+  "homepage": "z43studio.com/expressive",
   "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/resources",
+    "test",
+    "tests"
+  ],
   "dependencies": {
     "bootstrap": "~3.1.1",
     "jquery": "~2.1.1"
