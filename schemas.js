@@ -38,19 +38,19 @@ userSchema.methods.validateUser = function(password, callback) {
 		callback(error);
 		return;
 	}
-	if (password !== null && (!password || password.length < 6)) {
-		var error = new Error("Your password must be six or more characters.");
+	if (password !== null && !Hash.verify(password, this.password)) {
+		var error = new Error("Your passwords did not match.");
 		error.status = 97813;
 		callback(error);
 		return;
 	}
-	if (password !== null && !Hash.verify(password, this.password)) {
-		var error = new Error("Your passwords did not match.");
+	if (password !== null && (!password || password.length < 6)) {
+		var error = new Error("Your password must be six or more characters.");
 		error.status = 97814;
 		callback(error);
 		return;
 	}
-	if (!this.email || this.email.length < 5) {
+	if (!this.email || !this.email.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
 		var error = new Error("You need a valid email address.");
 		error.status = 97815;
 		callback(error);
