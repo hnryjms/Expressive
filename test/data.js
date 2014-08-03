@@ -95,7 +95,7 @@ describe('data', function(){
 					me.name.first = 'James';
 					me.name.last = 'Smith';
 					me.email = 'james';
-					me.password = 'mypassword';
+					me.password = 'mypassword'
 					
 					me.validateUser('mypassword', function(error) {
 						expect(error).to.be.ok();
