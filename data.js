@@ -1,4 +1,3 @@
-var config = require('./package.json').config || {};
 var debug = require('debug')('expressive:data');
 
 var fs = require('fs');
@@ -6,6 +5,7 @@ var path = require('path');
 var Handlebars = require('handlebars');
 var nodemailer = require('nodemailer');
 var EventEmitter = require('events').EventEmitter;
+var _ = require('underscore');
 //var Dust = require('')
 
 var PassportLocalStrategy = require('passport-local');
@@ -13,13 +13,23 @@ var Mongoose = require('mongoose');
 var Session = require('express-session');
 var MongoStore = require('connect-mongo')(Session);
 
-var Data = function(config) {
+var Data = function(baseConfig) {
+	if (!fs.existsSync(path.join(__dirname, 'config.json'))) {
+		fs.writeFileSync(path.join(__dirname, 'config.json'), '{}');
+	};
+
+	var config = require('./config.json') || {};
+	_.extend(config, baseConfig);
+
 	var models = {};
 	var connection = Mongoose.createConnection();
 	var schemas = require('./schemas.js');
 	var data = this;
 	var defaults = require('./defaults.json');
-	var session = function(req, res, next) { req.session = {}; next(); };
+	var session = Session({
+		secret: 'expressive-fothzxhcgl9wiks',
+		key: 'expressive.session'
+	});
 	var mailConfig = config.mail || {
 		transport: 'sendmail'
 	}
@@ -60,7 +70,9 @@ var Data = function(config) {
 
 	connection.on('error', function(error) {
 		debug('Error connecting to MongoDB (%s)', error.message);
-		connection.db.close();
+		if (connection.db) {
+			connection.db.close();
+		};
 		connection.emit('done', error);
 	});
 
@@ -77,19 +89,25 @@ var Data = function(config) {
 			return models[name];
 		}
 	}
-	this.try = function(config, callback) {
-		if (typeof config == 'function') {
-			callback = config;
-			config = require('./package.json').config || {};
-		}
-		if (typeof callback == 'function') {
-			connection.once('done', callback);
-		}
+	this.try = function(newConfig, callback) {
+		if (typeof newConfig == 'function') {
+			callback = newConfig;
+			newConfig = null;
+		};
+
+		if (newConfig) {
+			_.extend(config, newConfig);
+		};
+		
 		if (connection.readyState != 0) {
 			connection.close(function(){
 				data.try(config, callback);
 			});
 		} else {
+			if (typeof callback == 'function') {
+				connection.once('done', callback);
+			}
+			
 			connection.open(config.host, config.database, config.port, config.options);
 		}
 	};
@@ -151,7 +169,7 @@ var Data = function(config) {
 				// You can write any kind of message you'd like.
 				// The message will be displayed on the next page the user visits.
 				// We're currently not displaying any success message for logging in.
-				done(error && error.status != 404 ? error : null, user, error && error.status == 404 ? { message: error.message } : null);
+				done(error && error.status != 401 ? error : null, user, error && error.status == 401 ? { message: error.message } : null);
 			});
 		});
 		return strategy;
@@ -234,4 +252,4 @@ var Data = function(config) {
 
 Data.prototype.__proto__ = EventEmitter.prototype;
 
-module.exports = new Data(config);
+module.exports = Data;

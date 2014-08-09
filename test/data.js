@@ -2,7 +2,10 @@ var expect = require('expect.js');
 var request = require('supertest');
 
 process.env.NODE_ENV = 'production';
-var data = require('../data');
+var Data = require('../data');
+var data = new Data({
+	database: 'expressive-tests'
+});
 
 describe('data', function(){
 	it('should have model() function', function(){
@@ -20,8 +23,13 @@ describe('data', function(){
 			it('should have pagination', function() {
 				expect(User).to.have.key('paginate');
 			});
-			it('should have authenticate static function', function() {
-				expect(User).to.have.key('authenticate');
+
+			describe('authenticate()', function() {
+				it('should exist', function() {
+					expect(User).to.have.key('authenticate');
+				});
+
+				// Not testable because we don't have a fake Mongoose connection
 			});
 
 			describe('validateUser()', function() {
@@ -35,14 +43,14 @@ describe('data', function(){
 					// me.name.first = 'James';
 					me.name.last = 'Smith';
 					me.email = 'james@yourdomain.com';
-					me.password = 'mypassword';
+					me.setPassword('mypassword', function() {
+						me.validateUser('mypassword', function(errors) {
+							expect(errors).to.be.an(Array);
+							expect(errors).to.have.length(1);
+							expect(errors[0].status).to.be(97811);
 
-					me.validateUser('mypassword', function(error) {
-						expect(error).to.be.ok();
-						expect(error).to.have.key('status');
-						expect(error.status).to.be(97811);
-
-						done();
+							done();
+						});
 					});
 				});
 				it('should error for missing last name', function(done) {
@@ -50,14 +58,14 @@ describe('data', function(){
 					me.name.first = 'James';
 					// me.name.last = 'Smith';
 					me.email = 'james@yourdomain.com';
-					me.password = 'mypassword';
+					me.setPassword('mypassword', function() {
+						me.validateUser('mypassword', function(errors) {
+							expect(errors).to.be.an(Array);
+							expect(errors).to.have.length(1);
+							expect(errors[0].status).to.be(97812);
 
-					me.validateUser('mypassword', function(error) {
-						expect(error).to.be.ok();
-						expect(error).to.have.key('status');
-						expect(error.status).to.be(97812);
-
-						done();
+							done();
+						});
 					});
 				});
 				it('should error for mismatching password', function(done) {
@@ -65,14 +73,14 @@ describe('data', function(){
 					me.name.first = 'James';
 					me.name.last = 'Smith';
 					me.email = 'james@yourdomain.com';
-					me.password = 'mypassword';
-					
-					me.validateUser('pass', function(error) {
-						expect(error).to.be.ok();
-						expect(error).to.have.key('status');
-						expect(error.status).to.be(97813);
+					me.setPassword('mypassword', function() {
+						me.validateUser('pass', function(errors) {
+							expect(errors).to.be.an(Array);
+							expect(errors).to.have.length(1);
+							expect(errors[0].status).to.be(97813);
 
-						done();
+							done();
+						});
 					});
 				});
 				it('should error for short password', function(done) {
@@ -80,14 +88,14 @@ describe('data', function(){
 					me.name.first = 'James';
 					me.name.last = 'Smith';
 					me.email = 'james@yourdomain.com';
-					me.password = 'pass';
-					
-					me.validateUser('pass', function(error) {
-						expect(error).to.be.ok();
-						expect(error).to.have.key('status');
-						expect(error.status).to.be(97814);
+					me.setPassword('pass', function() {
+						me.validateUser('pass', function(errors) {
+							expect(errors).to.be.an(Array);
+							expect(errors).to.have.length(1);
+							expect(errors[0].status).to.be(97814);
 
-						done();
+							done();
+						});
 					});
 				});
 				it('should error for invalid email', function(done) {
@@ -95,14 +103,14 @@ describe('data', function(){
 					me.name.first = 'James';
 					me.name.last = 'Smith';
 					me.email = 'james';
-					me.password = 'mypassword';
-					
-					me.validateUser('mypassword', function(error) {
-						expect(error).to.be.ok();
-						expect(error).to.have.key('status');
-						expect(error.status).to.be(97815);
+					me.setPassword('mypassword', function() {
+						me.validateUser('mypassword', function(errors) {
+							expect(errors).to.be.an(Array);
+							expect(errors).to.have.length(1);
+							expect(errors[0].status).to.be(97815);
 
-						done();
+							done();
+						});
 					});
 				});
 				/*
@@ -139,17 +147,26 @@ describe('data', function(){
 				*/
 			});
 			describe('validatePassword()', function() {
+				it('should exist', function() {
+					var me = new User();
+
+					expect(me.__proto__).to.have.key('validatePassword');
+				});
 				it('should fail', function() {
 					var me = new User();
-					me.password = 'mypassword';
-
-					expect(me.validatePassword('mypasswor')).to.not.be.ok();
+					me.setPassword('mypassword', function() {
+						me.validatePassword('mypasswor', function(match) {
+							expect(match).to.not.be.ok();
+						});
+					});
 				});
 				it('should succeed', function() {
 					var me = new User();
-					me.password = 'mypassword';
-
-					expect(me.validatePassword('mypassword')).to.be.ok();
+					me.setPassword('mypassword', function() {
+						me.validatePassword('mypassword', function(match) {
+							expect(match).to.be.ok();
+						});
+					});
 				});
 			});
 		});

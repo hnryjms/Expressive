@@ -63,9 +63,11 @@ router.post('/forgot', function(req, res, next) {
 		User.findOne({ _id: req.body['id'], rid: req.body['rid'] }, function(err, user) {
 			if (user) {
 				user.password = req.body['password'];
-				user.validateUser(req.body['password_again'], function(err){
-					if (err) {
-						req.flash('error', err.message);
+				user.validateUser(req.body['password_again'], function(errors){
+					if (errors) {
+						for (var i = errors.length - 1; i >= 0; i--) {
+							req.flasg('error', errors[i].message);
+						};
 						res.redirect('/admin/forgot?rid=' + req.body['rid']);
 					} else {
 						user.save(function(err) {

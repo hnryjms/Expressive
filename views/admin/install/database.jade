@@ -1,4 +1,4 @@
-extends ../layout
+extends ../_layout
 
 block layout_variables
 	- var navigation = false;
@@ -26,7 +26,7 @@ block content
 				h1 Welcome to Expressive.
 				p.lead Expressive helps you build cooler, faster websites easily. To get going, you just need to give us some database information.
 				p Often times we can guess this information correctly, but if you can't get things working, contact your server manager or web host for MongoDB details. You might need to pay for an online MongoDB database like <a href="https://mongolab.com/" target="_blank">MongoLab</a>. If the grayed defaults below look okay, you can just click the next button right now.
-				each error in flash('error')
+				each error in req.flash('error')
 					.alert.alert-danger
 						p= error
 				form.form-horizontal#install-form(method='post', action='/install/database')
@@ -49,8 +49,8 @@ block content
 							.col-sm-10
 							.row
 								.col-sm-6
-									input.form-control#user(type='text', name='user', placeholder='Username', value=config.options.user)
+									input.form-control#user(type='text', name='user', placeholder='Username', value=config.options ? config.options.user : undefined)
 								.col-sm-6
-									input.form-control#pass(type='password', name='pass', placeholder='Password', value=config.options.pass)
+									input.form-control#pass(type='password', name='pass', placeholder='Password', value=config.options ? config.options.pass : undefined)
 					p.text-right
 						button.btn.btn-primary(type='submit') Check Database and Move On &rarr;

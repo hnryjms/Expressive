@@ -1,4 +1,4 @@
-extends ../layout
+extends ../_layout
 
 block layout_variables
 	- var navigation = false;
@@ -33,7 +33,7 @@ block content
 				h1 Get Expressive.
 				p.lead Your new Expressive website is waiting for you. Just set up a few last things and you'll be ready to create cooler, faster websites easily.
 
-				each error in flash('error')
+				each error in req.flash('error')
 					.alert.alert-danger
 						p= error
 

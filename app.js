@@ -14,10 +14,15 @@ var watch = require('node-watch');
 var routes = require('./routes/index');
 
 var app = express();
-var data = require('./data');
+var Data = require('./data');
+var data = new Data();
 var debug = require('debug')('expressive:app');
 
 var Actions = require('./actions.js');
+
+passport.use(data.passport());
+passport.serializeUser(data.serializeUser());
+passport.deserializeUser(data.deserializeUser());
 
 app.__proto__.__proto__ = new Actions(app);
 
@@ -95,9 +100,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(data.session());
 app.use(csrf());
-passport.use(data.passport());
-passport.serializeUser(data.serializeUser());
-passport.deserializeUser(data.deserializeUser());
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -145,7 +147,7 @@ for (var engine in data.engines) {
 }
 
 app.use(function(req, res, next) {
-    var config = require('./package.json').config || { options: {} };
+    var config = require('./config.json') || { options: {} };
 
     app._prepare(req, res);
     req.data = data;
@@ -153,9 +155,6 @@ app.use(function(req, res, next) {
     res.locals.config = config;
     res.locals.options = {};
     res.locals.req = req;
-    res.locals.flash = function(type) {
-        return req.flash(type);
-    };
     res.locals._expNavMatches = function(active, item) {
         return  active &&
                 item &&

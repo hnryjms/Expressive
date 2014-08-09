@@ -52,9 +52,11 @@ router.post('/new', function(req, res, next) {
 	user.name.first = req.body['name.first'];
 	user.name.last = req.body['name.last'];
 	user.email = req.body['email'];
-	user.validateUser(null, function(err) {
-		if (err) {
-			req.flash('error', err.message);
+	user.validateUser(null, function(errors) {
+		if (errors) {
+			for (var i = errors.length - 1; i >= 0; i--) {
+				req.flash('error', errors[i].message);
+			};
 			res.redirect('/admin/users/new');
 		} else {
 			user.save(function(err) {
@@ -128,19 +130,41 @@ router.post('/:id', function(req, res, next) {
 			user.name.last = req.body['name.last'];
 			user.email = req.body['email'];
 			
+			var validate = function(){
+				user.validateUser(changePassword ? req.body['new_password2'] : null, function(errors) {
+					if (errors) {
+						for (var i = 0; i < errors.length; i++) {
+							req.flash('error', errors[i].message);
+						};
+						res.redirect('/admin/users/' + user.id);
+					} else {
+						user.save(function(err) {
+							req.flash('success', 'This account has been updated.');
+							res.redirect('/admin/users/' + user.id);
+						});
+					}
+				});
+			}
+
 			if (user.id == req.user.id) {
 				// USER is ME ----> Can change password
 
 				var changePassword = false;
 				if (req.body['new_password'] && req.body['new_password'].length > 0) {
-					if (user.validatePassword(req.body['password'])) {
-						user.password = req.body['new_password'];
-						changePassword = true;
-					} else {
-						req.flash('error', 'You must enter your current password.');
-						res.redirect('/admin/users/' + user.id);
-						return;
-					}
+					user.validatePassword(req.body['password'], function(match) {
+						if (match) {
+							user.setPassword(req.body['new_password'], function(){
+								validate();
+							});
+							changePassword = true;
+						} else {
+							req.flash('error', 'You must enter your current password.');
+							res.redirect('/admin/users/' + user.id);
+							return;
+						}
+					});
+				} else {
+					validate();
 				}
 			} else {
 				// USER is not ME ----> Can deactivate, change role, etc.
@@ -150,19 +174,9 @@ router.post('/:id', function(req, res, next) {
 				if (user.active && !user.password && !user.rid) {
 					// Ask for a new password
 				}
-			}
 
-			user.validateUser(changePassword ? req.body['new_password2'] : null, function(err) {
-				if (err) {
-					req.flash('error', err.message);
-					res.redirect('/admin/users/' + user.id);
-				} else {
-					user.save(function(err) {
-						req.flash('success', 'This account has been updated.');
-						res.redirect('/admin/users/' + user.id);
-					});
-				}
-			});
+				validate();
+			}
 		} else {
 			err = new Error("This user does not exist.");
 			err.status = 500;
