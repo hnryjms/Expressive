@@ -3,7 +3,7 @@ var router = express.Router({ strict: true });
 var path = require('path');
 
 router.get('/', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.optionLoader('title', 'maxRows'), next);
+	req.data.requireUser(req, res, req.data.requireOptions('title', 'maxRows'), next);
 }, function(req, res) {
 	var table = {
 		plural: "accounts",
@@ -36,7 +36,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/new', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.optionLoader('title'), next);
+	req.data.requireUser(req, res, req.data.requireOptions('title'), next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	var user = new User();
@@ -72,7 +72,7 @@ router.post('/new', function(req, res, next) {
 });
 
 router.get('/:id', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.optionLoader('title'), next);
+	req.data.requireUser(req, res, req.data.requireOptions('title'), next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	User.findById(req.params.id, function(err, user) {

@@ -5,11 +5,11 @@ var fs = require('fs');
 var path = require('path');
 
 router.get('/', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.optionLoader('title', 'maxRows'), next);
+	req.data.requireUser(req, res, req.data.requireOptions('title', 'maxRows'), next);
 }, function(req, res) {
 	fs.readdir(path.join(__dirname, '../', '../', 'private', 'extensions'), function(err, dirs) {
 		var extensions = [];
-		var next = function(i) {
+		(function next(i) {
 			if (i >= dirs.length) {
 
 				var table = {
@@ -35,12 +35,11 @@ router.get('/', function(req, res, next) {
 					if (!err) {
 						var extension = JSON.parse(json);
 						extensions.push(extension);
-						next(++i);
 					}
+					next(++i);
 				});
 			}
-		};
-		next(0);
+		})(0);
 	});
 });
 

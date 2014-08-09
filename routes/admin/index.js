@@ -12,7 +12,7 @@ router.use('/users', users);
 router.use('/extensions', extensions);
 
 router.get('/', function(req, res, next) {
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 	if (req.user) {
 		res.render('admin/dashboard', { title: 'Dashboard', active: 'dashboard' });
@@ -22,7 +22,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/login', function(req, res, next) {
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 	res.render('admin/login', { title: 'Login', next: req.query['next'] });
 });
@@ -36,7 +36,7 @@ router.post('/login', function(req, res, next) {
 });
 
 router.get('/forgot', function(req, res, next) {
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 	if (req.query.rid) {
 		var User = req.data.model('User');
@@ -55,7 +55,7 @@ router.get('/forgot', function(req, res, next) {
 });
 
 router.post('/forgot', function(req, res, next) {
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 	var User = req.data.model('User');
 
@@ -129,7 +129,7 @@ router.use(function(err, req, res, next) {
 });
 
 router.use(function(err, req, res, next) {
-	req.data.optionLoader('title')(req, res, function(){
+	req.data.requireOptions('title')(req, res, function(){
 		res.render('admin/error', {
 			title: 'Error',
 			message: err.message,

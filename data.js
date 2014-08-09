@@ -98,7 +98,7 @@ var Data = function(baseConfig) {
 		if (newConfig) {
 			_.extend(config, newConfig);
 		};
-		
+
 		if (connection.readyState != 0) {
 			connection.close(function(){
 				data.try(config, callback);
@@ -111,7 +111,7 @@ var Data = function(baseConfig) {
 			connection.open(config.host, config.database, config.port, config.options);
 		}
 	};
-	this.optionLoader = function() {
+	this.requireOptions = function() {
 		var args = Array.prototype.slice.call(arguments, 0);
 		return function(req, res, next) {
 			var Option = models['Option'];

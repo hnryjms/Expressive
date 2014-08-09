@@ -65,7 +65,7 @@ router.post('/database', function(req, res) {
 });
 
 router.get('/site', function(req, res, next){
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 	var User = req.data.model('User');
 
@@ -142,7 +142,7 @@ router.post('/site', function(req, res) {
 });
 
 router.get('/done', function(req, res, next) {
-	req.data.optionLoader('title')(req, res, next);
+	req.data.requireOptions('title')(req, res, next);
 }, function(req, res) {
 
 	res.render('admin/install/done', { title: 'Install' });

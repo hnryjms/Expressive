@@ -66,7 +66,7 @@ Actions.prototype.requireUser = function(role) {
 
 Actions.prototype.requireOptions = function() {
 	var args = Array.prototype.slice.call(arguments, 0);
-	return this._req.data.optionLoader.apply(null, args);
+	return this._req.data.requireOptions.apply(null, args);
 };
 
 Actions.prototype.registerResource = function(name, options) {
