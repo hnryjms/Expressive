@@ -9,6 +9,20 @@ var users = require('./routes/users');
 
 var app = express();
 
+app.use(function(req, res, next) {
+	req.parent.addMenu('content', [
+		{ title: 'Sample', href: '/admin/example' }
+	]);
+	req.parent.customField('User', {
+		title: 'Sample Boolean',
+		name: 'sample-bool',
+		default: true,
+		description: 'Sample description could go here.',
+		type: Boolean
+	});
+	next();
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -24,19 +38,5 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/admin/example', routes);
-
-app.use(function(req, res, next) {
-	req.parent.addMenu('content', [
-		{ title: 'Sample', href: '/admin/example' }
-	]);
-	req.parent.customField('User', {
-		title: 'Sample Boolean',
-		name: 'sample-bool',
-		default: true,
-		description: 'Sample description could go here.',
-		type: Boolean
-	});
-	next();
-});
 
 module.exports = app;

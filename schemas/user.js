@@ -5,6 +5,8 @@ var STATES = Mongoose.STATES;
 var Crypt = require('bcrypt');
 var Paginate = require('mongoose-paginate');
 var CustomFields = require('mongoose-custom-fields');
+var ACL = require('mongoose-acl');
+
 var debug = require('debug')('expressive:schemas:user');
 
 var hashSize = 8;
@@ -133,5 +135,6 @@ User.methods.authenticate = function(password, callback) {
 
 User.plugin(Paginate);
 User.plugin(CustomFields);
+User.plugin(ACL.subject);
 
 module.exports = User;

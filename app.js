@@ -8,89 +8,26 @@ var flash = require('connect-flash');
 var passport = require('passport');
 var csrf = require('csurf');
 var requireMiddleware = require('requirejs-middleware');
-var fs = require('fs');
-var watch = require('node-watch');
+
+var debug = require('debug')('expressive:app');
 
 var routes = require('./routes/index');
 
-var app = express();
 var Data = require('./data');
-var data = new Data();
-var debug = require('debug')('expressive:app');
-
+var Extend = require('./extend');
 var Actions = require('./actions');
 var Config = require('./config');
+
+var app = express();
+var data = new Data();
+app.set('data', data);
+var extend = new Extend(app);
+
+app.__proto__.__proto__ = new Actions(app);
 
 passport.use(data.passport());
 passport.serializeUser(data.serializeUser());
 passport.deserializeUser(data.deserializeUser());
-
-app.__proto__.__proto__ = new Actions(app);
-
-app.set('extensions', {});
-data.once('ready', function(){
-    fs.readdir(path.join(__dirname, 'private', 'extensions'), function(err, dirs) {
-        var extensions = [];
-        var loadExtension = function(extension) {
-            debug('Loading extension "%s"...', extension);
-
-            var EXT = require(extension);
-
-            (function run(mod) {
-                // Go over each of the module's children and
-                // run over it
-                mod.children.forEach(function (child) {
-                    run(child);
-                });
-
-                // Call the specified callback providing the
-                // found module
-                delete(require.cache[mod.id]);
-            })(require.cache[extension]);
-
-            return EXT;
-        }
-        var next = function(i) {
-            if (i >= dirs.length) {
-                var index = i - dirs.length;
-                if (index < extensions.length) {
-                    var extension = path.join(__dirname, 'private', 'extensions', extensions[index]);
-                    fs.exists(extension, function(exists) {
-                        if (exists && true) {
-
-                            var EXT = { middleware: loadExtension(extension) };
-                            
-                            EXT._path = path.join(extension, '../');
-                            EXT._watcher = watch(path.join(extension, '../'), function(filename) {
-                                if (filename.substr(-2) == 'js') {
-                                    app.get('extensions')[extensions[index]].middleware = loadExtension(extension);
-
-                                    debug('Extension "%s" has been updated and reloaded.', extensions[index]);
-                                }
-                            });
-
-                            app.get('extensions')[extensions[index]] = EXT;
-                        } else {
-                            debug('Error with "%s" Extension (missing plugin file)', extensions[index]);
-                        }
-                        next(++i);
-                    });
-                }
-            } else {
-                fs.readFile(path.join(__dirname, 'private', 'extensions', dirs[i], 'package.json'), 'utf8', function(err, json) {
-                    if (!err) {
-                        var extension = JSON.parse(json);
-                        extensions.push(path.join(dirs[i], extension.main || 'app.js'));
-                        next(++i);
-                    } else {
-                        next(++i);
-                    }
-                });
-            }
-        };
-        next(0);
-    });
-});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -196,33 +133,7 @@ app.use(function(req, res, next) {
         });
     }
 });
-app.use(function(req, res, next) {
-    var middleware = Object.keys(app.get('extensions')).reduce(function(a, e) {
-        e = app.get('extensions')[e];
-        if (e.middleware) {
-            var fn = e.middleware;
-            fn._path = e._path;
-            a.push(fn);
-        }
-        return a;
-    }, []);
-    var orig = req.app;
-    (function pass(i) {
-        if (i >= middleware.length) {
-            next();
-        } else {
-            middleware[i](req, res, function(err) {
-                req.__proto__ = orig.request;
-                res.__proto__ = orig.response;
-                if (err) {
-                    next(err);
-                } else {
-                    pass(++i);
-                }
-            });
-        }
-    })(0);
-});
+app.use(extend.middleware());
 app.use('/', routes);
 
 /// catch 404 and forwarding to error handler
@@ -232,33 +143,9 @@ app.use(function(req, res, next) {
     next(err);
 });
 
-app.use(function(error, req, res, next) {
-    var middleware = Object.keys(app.get('extensions')).reduce(function(a, e) {
-        e = app.get('extensions')[e];
-        if (e.middleware && e.middleware.length >= 4) {
-            var fn = e.middleware;
-            fn._path = e._path;
-            a.push(fn);
-        }
-        return a;
-    }, []);
-    (function pass(i) {
-        if (i >= middleware.length) {
-            next(error);
-        } else {
-            middleware[i].parent = app;
-            middleware[i].handle(error, req, res, function(err){
-                if (err) {
-                    // Change to new error
-                    error = err;
-                }
-                pass(++i);
-            });
-        }
-    })(0);
-});
-
 /// error handlers
+
+app.use(extend.errorware());
 
 // development error handler
 // will print stacktrace
