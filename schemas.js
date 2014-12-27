@@ -17,28 +17,20 @@ var optionSchema = new Schema({
 
 var userSchema = new Schema({
 	name: {
-		first: String,
-		last: String
+		first: { type: String, required: 'You must enter your first name.' },
+		last: { type: String, required: 'You must enter your last name.' }
 	},
-	email: String,
-	password: { type: String },
+	email: { type: String, required: 'You must enter your email.' },
+	password: { type: String, required: 'You must enter a password.' },
 	active: { type: Boolean, default: true },
 	rid: String
 });
-
-userSchema.path('name.first').validate(function(value) {
-	return value.length > 0;
-}, 'You must enter your first name.');
-
-userSchema.path('name.last').validate(function(value) {
-	return value.length > 0;
-}, 'You must enter your last name.');
 
 userSchema.virtual('name.display').get(function(){
 	if (this.name.first === undefined && this.name.last === undefined) {
 		return 'New Account';
 	}
-	
+
 	return this.name.first + ' ' + this.name.last;
 });
 
@@ -51,20 +43,23 @@ userSchema.path('email').validate(function(value, next) {
 	var user = this;
 	var User = this.model('User');
 	User.findOne({ email: value }, function(err, existing) {
-		var valid = existing && (existing.id == user.id);
+		var valid = !existing || (existing && existing.id == user.id);
 		next(valid);
 	});
 }, 'Your email address already is registered to an account.');
 
 userSchema.path('password').validate(function(value) {
-	console.log('Validating pass', value);
 	if (value.indexOf('$2a$') === 0 && Crypt.getRounds(value) == hashSize) {
 		// All hashed passwords have already been validated.
 		return true;
 	}
 
+	if (value.length >= 6) {
+		return true;
+	}
+
 	return false;
-}, 'Unexpected error encrypting, hashing & salting your password.');
+}, 'Your password must be six characters or longer.');
 
 userSchema.pre('save', function(next) {
 	var user = this;
