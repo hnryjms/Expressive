@@ -1,4 +1,5 @@
 var Schema = require('mongoose').Schema;
+var STATES = require('mongoose').STATES;
 var Mixed = Schema.Types.Mixed;
 var ObjectId = Schema.Types.ObjectId;
 
@@ -42,10 +43,15 @@ userSchema.path('email').validate(function(value) {
 userSchema.path('email').validate(function(value, next) {
 	var user = this;
 	var User = this.model('User');
-	User.findOne({ email: value }, function(err, existing) {
-		var valid = !existing || (existing && existing.id == user.id);
-		next(valid);
-	});
+	var connection = User.db;
+	if (connection.readyState == STATES['connected']) {
+		User.findOne({ email: value }, function(err, existing) {
+			var valid = !existing || (existing && existing.id == user.id);
+			next(valid);
+		});
+	} else {
+		next(true);
+	}
 }, 'Your email address already is registered to an account.');
 
 userSchema.path('password').validate(function(value) {
