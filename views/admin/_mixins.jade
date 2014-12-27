@@ -15,3 +15,28 @@ mixin head(options)
 mixin navigation
 	if me
 		include _navigation
+
+mixin customFields(object, item)
+	if req.customFields
+		- var fields = req.customFields[object] || [];
+		if fields.length > 0
+			.form-group.divider
+			each field in fields
+				- var value = item.customField(field.name);
+				- if (value === undefined && field.default !== undefined) value = field.default;
+				- var fid = field.id || 'custom-field-' + field.name;
+				- var fname = 'customField[' + field.name + ']';
+
+				if field.type === Boolean
+					.checkbox
+						label
+							input(id=fid, type='checkbox', name=fname, value='true', checked=value)
+							!= field.title
+					if field.description
+						p(id=fid)!= field.description
+				else if field.type === String
+					.form-group
+						label(for=fid)!= field.title
+						if field.description
+							label.p(for=fid)!= field.description
+						input.form-control(id=fid, type='text', name=fname, value=value)

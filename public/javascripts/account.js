@@ -8,16 +8,19 @@ require([ "jquery" ], function($) {
 		$(this).remove();
 		return false;
 	});
-	if ($("input#active").prop('checked') == false) {
-		$("#mailpassword").hide();
-	}
-	$("input#active").change(function(){
+
+	$("input[type='checkbox']").each(function(i, e){
+		if ($(e).prop('checked') == false) {
+			$("p#" + $(e).prop('id')).hide();
+		}
+	});
+	$("input[type='checkbox']").change(function(){
 		var active = $(this).prop('checked');
 
 		if (active) {
-			$("#mailpassword").show();
+			$("p#" + $(this).prop('id')).show();
 		} else {
-			$("#mailpassword").hide();
+			$("p#" + $(this).prop('id')).hide();
 		}
 	});
 });

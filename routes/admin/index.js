@@ -4,6 +4,7 @@ var router = express.Router({ strict: true });
 var uid = require('uid2');
 var fs = require('fs');
 var path = require('path');
+var _ = require('underscore');
 
 var users = require('./users');
 var extensions = require('./extensions');
@@ -63,20 +64,24 @@ router.post('/forgot', function(req, res, next) {
 		User.findOne({ _id: req.body['id'], rid: req.body['rid'] }, function(err, user) {
 			if (user) {
 				user.password = req.body['password'];
-				user.validateUser(req.body['password_again'], function(errors){
-					if (errors) {
-						for (var i = errors.length - 1; i >= 0; i--) {
-							req.flasg('error', errors[i].message);
-						};
-						res.redirect('/admin/forgot?rid=' + req.body['rid']);
-					} else {
-						user.save(function(err) {
-							req.login(user, function(err) {
-								req.flash('success', 'Your password has been updated.');
-								res.redirect('/admin');
-							});
+				if (req.body['password'] != req.body['password_again']) {
+					user.invalidate("password", "Your passwords do not match.");
+				}
+				user.save(function(err) {
+					if (err) {
+						if (err.name != 'ValidationError') {
+							next(err);
+							return;
+						}
+
+						_.each(err.errors, function(error) {
+							req.flash('error', error.message);
 						});
+						res.redirect('/admin/forgot?rid=' + req.body['rid']);
+						return;
 					}
+
+					res.redirect('/');
 				});
 			} else {
 				req.flash('error', 'This reset link has expired.');

@@ -13,24 +13,25 @@ var Mongoose = require('mongoose');
 var Session = require('express-session');
 var MongoStore = require('connect-mongo')(Session);
 
-var Data = function(baseConfig) {
-	if (!fs.existsSync(path.join(__dirname, 'config.json'))) {
-		fs.writeFileSync(path.join(__dirname, 'config.json'), '{}');
-	};
+var Config = require('./config');
 
-	var config = require('./config.json') || {};
-	_.extend(config, baseConfig);
+var Data = function(baseConfig) {
+	var databaseConfig = Config.database();
+	var appConfig = Config.app();
+
+	_.extend(databaseConfig, baseConfig);
 
 	var models = {};
 	var connection = Mongoose.createConnection();
 	var schemas = require('./schemas.js');
 	var data = this;
-	var defaults = require('./defaults.json');
 	var session = Session({
 		secret: 'expressive-fothzxhcgl9wiks',
-		key: 'expressive.session'
+		key: 'expressive.session',
+		resave: true,
+		saveUninitialized: false
 	});
-	var mailConfig = config.mail || {
+	var mailConfig = databaseConfig.mail || {
 		transport: 'sendmail'
 	}
 	var mail = nodemailer.createTransport(mailConfig.transport, mailConfig);
@@ -44,6 +45,9 @@ var Data = function(baseConfig) {
 			if (option) {
 				data.is.configured = true;
 				debug('Expressive has been set up with this database.');
+			} else if (data.is.configured) {
+				data.is.configured = false;
+				debug('Expressive has been uninstalled from this database.');
 			}
 			debug('Switching to database sessions.');
 			session = Session({
@@ -51,7 +55,9 @@ var Data = function(baseConfig) {
 				key: 'expressive.session',
 				store: new MongoStore({
 					db: connection.db
-			    })
+			    }),
+			    resave: true,
+			    saveUninitialized: false
 			});
 			connection.emit('done');
 			data.emit('ready');
@@ -76,7 +82,7 @@ var Data = function(baseConfig) {
 		connection.emit('done', error);
 	});
 
-	this.is = { configured: config.installed || false };
+	this.is = { configured: databaseConfig.installed || false };
 
 	this.model = function(name, schema) {
 		if (model === null) {
@@ -96,19 +102,19 @@ var Data = function(baseConfig) {
 		};
 
 		if (newConfig) {
-			_.extend(config, newConfig);
+			_.extend(databaseConfig, newConfig);
 		};
 
 		if (connection.readyState != 0) {
 			connection.close(function(){
-				data.try(config, callback);
+				data.try(databaseConfig, callback);
 			});
 		} else {
 			if (typeof callback == 'function') {
 				connection.once('done', callback);
 			}
 			
-			connection.open(config.host, config.database, config.port, config.options);
+			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port, databaseConfig.options);
 		}
 	};
 	this.requireOptions = function() {
@@ -126,7 +132,7 @@ var Data = function(baseConfig) {
 					};
 					for (var i = 0; i < args.length; i++) {
 						if (!opts.hasOwnProperty(args[i])) {
-							opts[args[i]] = defaults[args[i]];
+							opts[args[i]] = appConfig[args[i]];
 						}
 					};
 					req.options = opts;
@@ -247,7 +253,7 @@ var Data = function(baseConfig) {
 		this.model(schemaType, schema);
 	};
 
-	this.try(config);
+	this.try(databaseConfig);
 };
 
 Data.prototype.__proto__ = EventEmitter.prototype;

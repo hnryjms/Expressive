@@ -24,6 +24,24 @@ describe('data', function(){
 				expect(User).to.have.key('paginate');
 			});
 
+			it('should combine full name', function() {
+				var me = new User();
+				me.name.first = 'James';
+				me.name.last = 'Smith';
+
+				expect(me.name.full).to.be.eql('James Smith');
+			});
+			it('should list custom keys', function() {
+				var me = new User();
+				me.customField('birthday', new Date());
+				me.customField('theme', 'admin-red.css');
+
+				expect(me.customKeys).to.be.an(Array);
+				expect(me.customKeys).to.have.length(2);
+				expect(me.customKeys).to.contain('birthday');
+				expect(me.customKeys).to.contain('theme');
+			});
+
 			describe('authenticate()', function() {
 				it('should exist', function() {
 					expect(User).to.have.key('authenticate');
@@ -167,6 +185,13 @@ describe('data', function(){
 							expect(match).to.be.ok();
 						});
 					});
+				});
+			});
+			describe('customField()', function() {
+				it('should exist', function() {
+					var me = new User();
+
+					expect(me.__proto__).to.have.key('customField');
 				});
 			});
 		});

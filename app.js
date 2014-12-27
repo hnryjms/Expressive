@@ -18,7 +18,8 @@ var Data = require('./data');
 var data = new Data();
 var debug = require('debug')('expressive:app');
 
-var Actions = require('./actions.js');
+var Actions = require('./actions');
+var Config = require('./config');
 
 passport.use(data.passport());
 passport.serializeUser(data.serializeUser());
@@ -96,7 +97,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(cookieParser());
 app.use(data.session());
 app.use(csrf());
@@ -147,7 +150,7 @@ for (var engine in data.engines) {
 }
 
 app.use(function(req, res, next) {
-    var config = require('./config.json') || { options: {} };
+    var config = Config.database();
 
     app._prepare(req, res);
     req.data = data;
@@ -168,107 +171,7 @@ app.use(function(req, res, next) {
         res.locals.me = req.user
         
         // TODO: Change admin bar pieces as the users role changes
-        res.locals.adminBar = {
-            leftItems: [
-                {
-                    title: 'Dashboard',
-                    active: 'dashboard',
-                    href: '/admin'
-                },
-                {
-                    id: 'content',
-                    title: 'Content',
-                    active: /^(posts|pages|media|themes|extensions|settings)/,
-                    href: '/admin/posts',
-                    submenu: [
-                        {
-                            id: 'content-sources',
-                            items: [
-                                {
-                                    title: 'Posts',
-                                    active: 'posts',
-                                    href: '/admin/posts',
-                                    new: '/admin/posts/new'
-                                },
-                                {
-                                    title: 'Pages',
-                                    active: 'pages',
-                                    href: '/admin/pages',
-                                    new: '/admin/pages/new'
-                                },
-                                {
-                                    title: 'Media',
-                                    active: 'media',
-                                    href: '/admin/media',
-                                    new: {
-                                        href: '/admin/media/new',
-                                        title: 'Add'
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            id: 'content-layout',
-                            items: [
-                                {
-                                    title: 'Themes',
-                                    active: 'themes',
-                                    href: '/admin/themes'
-                                },
-                                {
-                                    title: 'Extensions',
-                                    active: 'extensions',
-                                    href: '/admin/extensions'
-                                }
-                            ]
-                        },
-                        {
-                            id: 'content-options',
-                            items: [
-                                {
-                                    title: 'Manage Settings',
-                                    active: 'settings',
-                                    href: '/admin/settings'
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            rightItems: [
-                {
-                    title: req.user.name.full,
-                    active: /^users/,
-                    href: '/admin/users',
-                    submenu: [
-                        {
-                            id: 'accounts',
-                            items: [
-                                {
-                                    title: 'Edit Profile',
-                                    active: 'users/' + req.user.id,
-                                    href: '/admin/users/' + req.user.id,
-                                },
-                                {
-                                    title: 'Accounts',
-                                    active: 'users',
-                                    href: '/admin/users',
-                                    new: '/admin/users/new'
-                                }
-                            ]
-                        },
-                        {
-                            id: 'right',
-                            items: []
-                        },
-                        {
-                            title: 'Logout',
-                            href: '/admin/logout'
-                        }
-                    ]
-                }
-            ]
-        }
+        res.locals.adminBar = app._generateAdminBar(req.user);
     }
     if (data.is.connected && data.is.configured) {
         next();

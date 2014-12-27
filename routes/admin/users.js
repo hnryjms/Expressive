@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router({ strict: true });
 var path = require('path');
+var _ = require('underscore');
 
 router.get('/', function(req, res, next) {
 	req.data.requireUser(req, res, req.data.requireOptions('title', 'maxRows'), next);
@@ -13,7 +14,7 @@ router.get('/', function(req, res, next) {
 			{
 				title: 'Name',
 				className: 'user-name',
-				structure: '<a href="/admin/users/{{id}}">{{name.full}}</a>',
+				structure: '<a href="/admin/users/{{id}}">{{name.display}}</a>',
 				actions: [
 					{ url: '/admin/users/{{id}}', title: 'Edit' },
 					{ url: '/admin/users/{{id}}/activate', title: 'Activate', if: function(row) { return row.active == false; } },
@@ -45,29 +46,28 @@ router.get('/new', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
 	req.data.requireUser(req, res, next);
-}, function(req, res) {
+}, function(req, res, next) {
 	var User = req.data.model('User');
 	var user = new User();
 
 	user.name.first = req.body['name.first'];
 	user.name.last = req.body['name.last'];
 	user.email = req.body['email'];
-	user.validateUser(null, function(errors) {
-		if (errors) {
-			for (var i = errors.length - 1; i >= 0; i--) {
-				req.flash('error', errors[i].message);
-			};
-			res.redirect('/admin/users/new');
-		} else {
-			user.save(function(err) {
-				if (err) {
-					req.flash('error', err.message);
-					res.redirect('/admin/users/new');
-				} else {
-					res.redirect('/admin/users/' + user.id);
-				}
+	user.save(function(err) {
+		if (err) {
+			if (err.name != 'ValidationError') {
+				next(err);
+				return;
+			}
+
+			_.each(err.errors, function(error) {
+				req.flash('error', error.message);
 			});
+			res.redirect('/admin/users/new');
+			return;
 		}
+
+		res.redirect('/admin/users/' + user.id);
 	});
 });
 
@@ -77,7 +77,7 @@ router.get('/:id', function(req, res, next) {
 	var User = req.data.model('User');
 	User.findById(req.params.id, function(err, user) {
 		if (user) {
-			res.render('admin/user', { title: user.name.full, active: 'users/' + user.id, user: user });
+			res.render('admin/user', { title: user.name.display, active: 'users/' + user.id, user: user });
 		} else {
 			res.redirect('/admin/users');
 		}
@@ -129,53 +129,74 @@ router.post('/:id', function(req, res, next) {
 			user.name.first = req.body['name.first'];
 			user.name.last = req.body['name.last'];
 			user.email = req.body['email'];
+
+			_.each(req.customFields['User'], function(customField) {
+				var value = (req.body['customField'] || {})[customField.name];
+				if (value === undefined && customField.type === Boolean) {
+					value = false;
+				} else if (customField.type === Boolean) {
+					value = true;
+				} else if (value === undefined) {
+					value = customField.default;
+				}
+				console.log('Value', value, customField, value !== customField.default);
+				if (value !== customField.default || customField.type === Boolean) {
+					user.customField(customField.name, value);
+				} else {
+					user.customField(customField.name, null);
+				}
+			})
+			console.log('Custom fields', user, req.body['customField']);
 			
-			var validate = function(){
-				user.validateUser(changePassword ? req.body['new_password2'] : null, function(errors) {
-					if (errors) {
-						for (var i = 0; i < errors.length; i++) {
-							req.flash('error', errors[i].message);
-						};
-						res.redirect('/admin/users/' + user.id);
-					} else {
-						user.save(function(err) {
-							req.flash('success', 'This account has been updated.');
-							res.redirect('/admin/users/' + user.id);
+			var save = function(){
+				user.save(function(err) {
+					if (err) {
+						if (err.name != 'ValidationError') {
+							next(err);
+							return;
+						}
+
+						_.each(err.errors, function(error) {
+							req.flash('error', error.message);
 						});
+						res.redirect('/admin/users/' + user.id);
+						return;
 					}
+
+					req.flash('success', 'This account has been updated.');
+					res.redirect('/admin/users/' + user.id);
 				});
 			}
 
 			if (user.id == req.user.id) {
 				// USER is ME ----> Can change password
 
-				var changePassword = false;
 				if (req.body['new_password'] && req.body['new_password'].length > 0) {
-					user.validatePassword(req.body['password'], function(match) {
+					user.authenticate(req.body['password'], function(err, match) {
 						if (match) {
-							user.setPassword(req.body['new_password'], function(){
-								validate();
-							});
-							changePassword = true;
+							user.password = req.body['new_password'];
+							if (req.body['new_password'] != req.body['new_password2']) {
+								user.invalidate("password", "Your new passwords do not match.");
+							}
 						} else {
-							req.flash('error', 'You must enter your current password.');
-							res.redirect('/admin/users/' + user.id);
-							return;
+							user.invalidate('password', 'You must enter your current password.');
 						}
+
+						save();
 					});
 				} else {
-					validate();
+					save();
 				}
 			} else {
 				// USER is not ME ----> Can deactivate, change role, etc.
 
-				user.active = req.body['active'] == 'true';
+				user.active = (req.body['active'] == 'true');
 
 				if (user.active && !user.password && !user.rid) {
 					// Ask for a new password
 				}
 
-				validate();
+				save();
 			}
 		} else {
 			err = new Error("This user does not exist.");

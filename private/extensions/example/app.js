@@ -29,6 +29,13 @@ app.use(function(req, res, next) {
 	req.parent.addMenu('content', [
 		{ title: 'Sample', href: '/admin/example' }
 	]);
+	req.parent.customField('User', {
+		title: 'Sample Boolean',
+		name: 'sample-bool',
+		default: true,
+		description: 'Sample description could go here.',
+		type: Boolean
+	});
 	next();
 });
 

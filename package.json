@@ -1,64 +1,40 @@
 {
-	"name": "expressive",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": {
-		"start": "node ./bin/www",
-		"test": "./node_modules/.bin/mocha test",
-		"postinstall": "./node_modules/.bin/bower install"
-	},
-	"dependencies": {
-		"bcrypt": "^0.8.0",
-		"body-parser": "*",
-		"bower": "*",
-		"connect-flash": "*",
-		"connect-mongo": "*",
-		"cookie-parser": "*",
-		"csurf": "*",
-		"debug": "*",
-		"express": "*",
-		"express-session": "*",
-		"handlebars": "*",
-		"jade": "*",
-		"less-middleware": "*",
-		"mongoose": "*",
-		"mongoose-paginate": "*",
-		"morgan": "*",
-		"node-watch": "*",
-		"nodemailer": "*",
-		"passport": "*",
-		"passport-local": "*",
-		"requirejs-middleware": "*",
-		"uid2": "*",
-		"underscore": "*"
-	},
-	"config": {
-		"options": {
-			"db": {
-				"read_preference": "primary",
-				"forceServerObjectId": false,
-				"w": 1
-			},
-			"auth": {},
-			"server": {
-				"socketOptions": {
-					"host": "127.0.0.1",
-					"port": 27017,
-					"domainSocket": false,
-					"timeout": 0,
-					"noDelay": true,
-					"keepAlive": 0,
-					"encoding": null,
-					"bufferSize": 0
-				},
-				"auto_reconnect": true
-			},
-			"replset": {
-				"socketOptions": {}
-			}
-		},
-		"host": "127.0.0.1",
-		"port": 27017,
-		"database": "expressive"
-	}
+  "name": "expressive",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "./node_modules/.bin/mocha test",
+    "postinstall": "./node_modules/.bin/bower install"
+  },
+  "dependencies": {
+    "bcrypt": "^0.8.0",
+    "body-parser": "*",
+    "bower": "*",
+    "connect-flash": "*",
+    "connect-mongo": "*",
+    "cookie-parser": "*",
+    "csurf": "*",
+    "debug": "*",
+    "express": "*",
+    "express-session": "*",
+    "handlebars": "*",
+    "jade": "*",
+    "less-middleware": "*",
+    "mongoose": "*",
+    "mongoose-custom-fields": "^1.0.1",
+    "mongoose-paginate": "*",
+    "morgan": "*",
+    "node-watch": "*",
+    "nodemailer": "*",
+    "passport": "*",
+    "passport-local": "*",
+    "requirejs-middleware": "*",
+    "uid2": "*",
+    "underscore": "*"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^1.21.4"
+  }
 }

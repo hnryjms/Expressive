@@ -9,7 +9,7 @@ block content
 
 	#account-panel.panel(class=errors.length > 0 ? 'panel-danger' : '', class=successes.length > 0 ? 'panel-success' : '', class=errors.length == 0 && successes.length == 0 ? 'panel-default' : '')
 		.panel-heading
-			h3.panel-title= user.name.full
+			h3.panel-title= user.name.display
 		.panel-body
 			each error in errors
 				.alert.alert-danger
@@ -49,7 +49,7 @@ block content
 							input#active(type='checkbox', name='active', value='true', checked=user.active)
 							| Active <span class="text-muted">(can currently log in)</span>
 					if !user.password && !user.rid
-						#mailpassword
-							p We'll send an email to this person asking them to create a new password.
+						p#active We'll send an email to this person asking them to create a new password.
+				+customFields('User', user)
 				p.text-right
 					button.btn.btn-primary(type='submit') Save &rarr;

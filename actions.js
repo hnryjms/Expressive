@@ -12,6 +12,109 @@ Actions.prototype._prepare = function(req, res) {
 	this._req = req;
 	this._res = res;
 };
+Actions.prototype._generateAdminBar = function(user) {
+	return {
+            leftItems: [
+                {
+                    title: 'Dashboard',
+                    active: 'dashboard',
+                    href: '/admin'
+                },
+                {
+                    id: 'content',
+                    title: 'Content',
+                    active: /^(posts|pages|media|themes|extensions|settings)/,
+                    href: '/admin/posts',
+                    submenu: [
+                        {
+                            id: 'content-sources',
+                            items: [
+                                {
+                                    title: 'Posts',
+                                    active: 'posts',
+                                    href: '/admin/posts',
+                                    new: '/admin/posts/new'
+                                },
+                                {
+                                    title: 'Pages',
+                                    active: 'pages',
+                                    href: '/admin/pages',
+                                    new: '/admin/pages/new'
+                                },
+                                {
+                                    title: 'Media',
+                                    active: 'media',
+                                    href: '/admin/media',
+                                    new: {
+                                        href: '/admin/media/new',
+                                        title: 'Add'
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            id: 'content-layout',
+                            items: [
+                                {
+                                    title: 'Themes',
+                                    active: 'themes',
+                                    href: '/admin/themes'
+                                },
+                                {
+                                    title: 'Extensions',
+                                    active: 'extensions',
+                                    href: '/admin/extensions'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'content-options',
+                            items: [
+                                {
+                                    title: 'Manage Settings',
+                                    active: 'settings',
+                                    href: '/admin/settings'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            rightItems: [
+                {
+                    title: user.name.display,
+                    active: /^users/,
+                    href: '/admin/users/' + user.id,
+                    submenu: [
+                        {
+                            id: 'accounts',
+                            items: [
+                                {
+                                    title: 'Edit Profile',
+                                    active: 'users/' + user.id,
+                                    href: '/admin/users/' + user.id,
+                                },
+                                {
+                                    title: 'Accounts',
+                                    active: 'users',
+                                    href: '/admin/users',
+                                    new: '/admin/users/new'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'right',
+                            items: []
+                        },
+                        {
+                            title: 'Logout',
+                            href: '/admin/logout'
+                        }
+                    ]
+                }
+            ]
+        }
+};
 
 Actions.prototype.addMenu = function(location, items) {
 	if (typeof location == 'object') {
@@ -57,6 +160,17 @@ Actions.prototype.addMenu = function(location, items) {
 			};
 		}
 	}
+};
+Actions.prototype.customField = function(model, options) {
+	var req = this._req;
+
+	if (!req.customFields) {
+		req.customFields = {};
+	}
+	if (!req.customFields[model]) {
+		req.customFields[model] = [];
+	}
+	req.customFields[model].push(options);
 };
 
 Actions.prototype.requireUser = function(role) {

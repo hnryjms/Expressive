@@ -4,6 +4,9 @@ var ObjectId = Schema.Types.ObjectId;
 
 var Crypt = require('bcrypt');
 var Paginate = require('mongoose-paginate');
+var CustomFields = require('mongoose-custom-fields');
+
+var hashSize = 8;
 
 var debug = require('debug')('expressive:schemas');
 
@@ -18,134 +21,124 @@ var userSchema = new Schema({
 		last: String
 	},
 	email: String,
-	password: { type: String, validate: [function(value) {
-		console.log('Validating:', value, Crypt.getRounds(value));
-		return Crypt.getRounds(value) == 10;
-	}, 'Password must be a 10-round encrypted hash.'] },
+	password: { type: String },
 	active: { type: Boolean, default: true },
 	rid: String
 });
 
-userSchema.methods.setPassword = function(password, callback) {
-	var user = this;
-	Crypt.hash(password, 10, function(err, hash) {
-		if (hash) {
-			user.password = hash;
-		}
-		callback(err);
-	});
-};
+userSchema.path('name.first').validate(function(value) {
+	return value.length > 0;
+}, 'You must enter your first name.');
 
-userSchema.methods.validateUser = function(password, callback) {
+userSchema.path('name.last').validate(function(value) {
+	return value.length > 0;
+}, 'You must enter your last name.');
 
-	var errors = [];
-	var user = this;
-
-	(function pass(status) {
-
-		var error = new Error();
-		error.status = status;
-
-		switch (status) {
-			case 97811:
-				if (!user.name.first || user.name.first.length == 0) {
-					error.message = "You need to have a first name.";
-					errors.push(error);
-				}
-				pass(97812);
-				break;
-			case 97812:
-				if (!user.name.last || user.name.last.length == 0) {
-					error.message = "You need to have a last name.";
-					errors.push(error);
-				}
-				pass(97813);
-				break;
-			case 97813:
-				if (password !== null) {
-					Crypt.compare(password, user.password, function(err, match) {
-						if (!match) {
-							error.message = "Your passwords did not match.";
-							errors.push(error);
-							pass(97815);
-						} else {
-							pass(97814);
-						};
-					});
-				} else {
-					pass(97815);
-				}
-				break;
-			case 97814:
-				if (password !== null && (!password || password.length < 6)) {
-					error.message = "Your password must be six or more characters.";
-					errors.push(error);
-				}
-				pass(97815);
-				break;
-			case 97815:
-				var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-				if (!user.email || !user.email.match(emailRegex)) {
-					error.message = "You need a valid email address.";
-					errors.push(error);
-				}
-				pass(97816);
-				break;
-			case 97816:
-				if (errors.length == 0) {
-					user.model('User').findOne({ email: user.email }, function(err, u) {
-						if (u && user.id != u.id) {
-							error.message = "That email address is already registered.";
-							errors.push(error);
-						}
-						pass(97817);
-					});
-				} else {
-					pass(97817);
-				}
-				break;
-			default:
-				callback(errors.length > 0 ? errors : null);
-		}
-	})(97811);
-};
-
-userSchema.methods.validatePassword = function(password, callback) {
-	return Crypt.compare(password, this.password, function(err, match) {
-		callback(match, err);
-	});
-};
-
-userSchema.statics.authenticate = function(email, password, callback) {
-	this.findOne({ email: email }, function(error, user) {
-		if (user) {
-			user.validatePassword(password, function(match) {
-				if (match) {
-					callback(null, user);
-				} else {
-					error = new Error("Your email or password was incorrect.");
-					error.status = 401;
-					callback(error, null);
-				};
-			});
-		} else if (!error) {
-			error = new Error("Your email or password was incorrect.");
-			error.status = 401;
-			callback(error, null);
-		} else {
-			callback(error, null);
-		}
-	});
-};
-
-userSchema.virtual('name.full').get(function(){
-	if (this.name.first === undefined && this.name.last == undefined) {
+userSchema.virtual('name.display').get(function(){
+	if (this.name.first === undefined && this.name.last === undefined) {
 		return 'New Account';
 	}
+	
 	return this.name.first + ' ' + this.name.last;
 });
 
+userSchema.path('email').validate(function(value) {
+	var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return value.match(emailRegex);
+}, 'You must enter a valid email address.');
+
+userSchema.path('email').validate(function(value, next) {
+	var user = this;
+	var User = this.model('User');
+	User.findOne({ email: value }, function(err, existing) {
+		var valid = existing && (existing.id == user.id);
+		next(valid);
+	});
+}, 'Your email address already is registered to an account.');
+
+userSchema.path('password').validate(function(value) {
+	console.log('Validating pass', value);
+	if (value.indexOf('$2a$') === 0 && Crypt.getRounds(value) == hashSize) {
+		// All hashed passwords have already been validated.
+		return true;
+	}
+
+	return false;
+}, 'Unexpected error encrypting, hashing & salting your password.');
+
+userSchema.pre('save', function(next) {
+	var user = this;
+	if (user.password && (user.password.indexOf('$2a$') !== 0 || Crypt.getRounds(user.password) != hashSize)) {
+		if (user.password.length < 6) {
+			user.invalidate('password', 'Your password must be six characters or longer.');
+		}
+
+		Crypt.hash(user.password, hashSize, function(err, hash) {
+			user.password = hash;
+			next(err);
+		});
+	} else {
+		next();
+	}
+});
+
+userSchema.statics.authenticate = function(email, password, callback) {
+	this.findOne({ email: email }, function(err, user) {
+		var send = function(err, user) {
+			if (err) {
+				err.status = 500;
+				callback(err);
+				return;
+			}
+
+			if (user) {
+				callback(null, user);
+				return;
+			}
+
+			var error = new Error("Your email address or password is wrong.");
+			error.status = 401;
+			callback(error);
+		}
+
+		if (err) {
+			send(err);
+			return;
+		}
+
+		if (user) {
+			Crypt.compare(password, user.password, function(err, matches) {
+				if (err) {
+					send(err);
+					return;
+				}
+
+				if (matches) {
+					send(null, user);
+					return;
+				}
+
+				send();
+			});
+		} else {
+			send();
+		}
+	});
+};
+
+userSchema.methods.authenticate = function(password, callback) {
+	Crypt.compare(password, this.password, function(err, matches) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		callback(null, matches);
+	});
+}
+
 userSchema.plugin(Paginate);
+userSchema.plugin(CustomFields);
 
 module.exports = {
 	Option: optionSchema,
