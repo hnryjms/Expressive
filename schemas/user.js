@@ -1,22 +1,15 @@
-var Schema = require('mongoose').Schema;
-var STATES = require('mongoose').STATES;
-var Mixed = Schema.Types.Mixed;
-var ObjectId = Schema.Types.ObjectId;
+var Mongoose = require('mongoose');
+var Schema = Mongoose.Schema;
+var STATES = Mongoose.STATES;
 
 var Crypt = require('bcrypt');
 var Paginate = require('mongoose-paginate');
 var CustomFields = require('mongoose-custom-fields');
+var debug = require('debug')('expressive:schemas:user');
 
 var hashSize = 8;
 
-var debug = require('debug')('expressive:schemas');
-
-var optionSchema = new Schema({
-	name: String,
-	value: Mixed
-});
-
-var userSchema = new Schema({
+var User = new Schema({
 	name: {
 		first: { type: String, required: 'You must enter your first name.' },
 		last: { type: String, required: 'You must enter your last name.' }
@@ -27,7 +20,7 @@ var userSchema = new Schema({
 	rid: String
 });
 
-userSchema.virtual('name.display').get(function(){
+User.virtual('name.display').get(function(){
 	if (this.name.first === undefined && this.name.last === undefined) {
 		return 'New Account';
 	}
@@ -35,12 +28,12 @@ userSchema.virtual('name.display').get(function(){
 	return this.name.first + ' ' + this.name.last;
 });
 
-userSchema.path('email').validate(function(value) {
+User.path('email').validate(function(value) {
 	var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return value.match(emailRegex);
 }, 'You must enter a valid email address.');
 
-userSchema.path('email').validate(function(value, next) {
+User.path('email').validate(function(value, next) {
 	var user = this;
 	var User = this.model('User');
 	var connection = User.db;
@@ -54,7 +47,7 @@ userSchema.path('email').validate(function(value, next) {
 	}
 }, 'Your email address already is registered to an account.');
 
-userSchema.path('password').validate(function(value) {
+User.path('password').validate(function(value) {
 	if (value.indexOf('$2a$') === 0 && Crypt.getRounds(value) == hashSize) {
 		// All hashed passwords have already been validated.
 		return true;
@@ -67,7 +60,7 @@ userSchema.path('password').validate(function(value) {
 	return false;
 }, 'Your password must be six characters or longer.');
 
-userSchema.pre('save', function(next) {
+User.pre('save', function(next) {
 	var user = this;
 	if (user.password && (user.password.indexOf('$2a$') !== 0 || Crypt.getRounds(user.password) != hashSize)) {
 		if (user.password.length < 6) {
@@ -83,7 +76,7 @@ userSchema.pre('save', function(next) {
 	}
 });
 
-userSchema.statics.authenticate = function(email, password, callback) {
+User.statics.authenticate = function(email, password, callback) {
 	this.findOne({ email: email }, function(err, user) {
 		var send = function(err, user) {
 			if (err) {
@@ -127,7 +120,7 @@ userSchema.statics.authenticate = function(email, password, callback) {
 	});
 };
 
-userSchema.methods.authenticate = function(password, callback) {
+User.methods.authenticate = function(password, callback) {
 	Crypt.compare(password, this.password, function(err, matches) {
 		if (err) {
 			callback(err);
@@ -138,10 +131,7 @@ userSchema.methods.authenticate = function(password, callback) {
 	});
 }
 
-userSchema.plugin(Paginate);
-userSchema.plugin(CustomFields);
+User.plugin(Paginate);
+User.plugin(CustomFields);
 
-module.exports = {
-	Option: optionSchema,
-	User: userSchema
-};
+module.exports = User;

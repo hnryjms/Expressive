@@ -23,7 +23,7 @@ var Data = function(baseConfig) {
 
 	var models = {};
 	var connection = Mongoose.createConnection();
-	var schemas = require('./schemas.js');
+	var schemas = require('./schemas');
 	var data = this;
 	var session = Session({
 		secret: 'expressive-fothzxhcgl9wiks',
@@ -247,7 +247,6 @@ var Data = function(baseConfig) {
 
 		return mail.sendMail(options);
 	}
-
 	for (var schemaType in schemas) {
 		var schema = schemas[schemaType];
 		this.model(schemaType, schema);

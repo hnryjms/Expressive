@@ -21,7 +21,7 @@
     "handlebars": "*",
     "jade": "*",
     "less-middleware": "*",
-    "mongoose": "*",
+    "mongoose": "^3.8.21",
     "mongoose-custom-fields": "^1.0.1",
     "mongoose-paginate": "*",
     "morgan": "*",
