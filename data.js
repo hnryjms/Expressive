@@ -105,7 +105,7 @@ var Data = function(baseConfig) {
 			_.extend(databaseConfig, newConfig);
 		};
 
-		if (connection.readyState != 0) {
+		if (connection.readyState == Mongoose.STATES['connected']) {
 			connection.close(function(){
 				data.try(databaseConfig, callback);
 			});

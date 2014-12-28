@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router({ strict: true });
 
-var uid = require('uid2');
+var hat = require('hat');
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
@@ -91,7 +91,7 @@ router.post('/forgot', function(req, res, next) {
 	} else {
 		User.findOne({ email: req.body['email'] }, function(err, user) {
 			if (user) {
-				user.rid = uid(16);
+				user.rid = hat();
 				user.save(function(err) {
 					fs.readFile(path.join(__dirname, '../', '../', 'views', 'email', 'reset.hbs'), 'utf8', function(err, mail) {
 						var url = req.protocol + '://' + req.headers.host + '/admin/forgot?rid=' + user.rid;

@@ -3,6 +3,10 @@ var fs = require('fs');
 
 var _perform = function(config, write) {
 	if (write) {
+		var configDir = path.join(config, '../');
+		if (!fs.existsSync(configDir)) {
+			fs.mkdirSync(configDir);
+		}
 		fs.writeFileSync(config, JSON.stringify(write, null, '\t'));
 
 		return write;
