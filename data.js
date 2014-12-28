@@ -54,7 +54,7 @@ var Data = function(baseConfig) {
 				secret: 'expressive-fothzxhcgl9wiks',
 				key: 'expressive.session',
 				store: new MongoStore({
-					db: connection.db
+					mongooseConnection: connection
 			    }),
 			    resave: true,
 			    saveUninitialized: false
