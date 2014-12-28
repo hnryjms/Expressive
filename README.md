@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/brekkehj/Expressive.svg?branch=master)](https://travis-ci.org/brekkehj/Expressive)
 [![Dependency Status](https://david-dm.org/brekkehj/Expressive.svg)](https://david-dm.org/brekkehj/Expressive)
 [![devDependency Status](https://david-dm.org/brekkehj/Expressive/dev-status.svg)](https://david-dm.org/brekkehj/Expressive#info=devDependencies)
+[![Coverage Status](https://coveralls.io/repos/brekkehj/Expressive/badge.png)](https://coveralls.io/r/brekkehj/Expressive)
 
 Expressive is an awesome, beautiful CMS for [Express.js](http://expressjs.com) and [Node.js](http://nodejs.org). Expressive is extendable, themeable, testable and growing.
 
