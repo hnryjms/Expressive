@@ -1,5 +1,9 @@
 # Expressive
 
+[![Build Status](https://travis-ci.org/brekkehj/Expressive.svg?branch=master)](https://travis-ci.org/brekkehj/Expressive)
+[![Dependency Status](https://david-dm.org/brekkehj/Expressive.svg)](https://david-dm.org/brekkehj/Expressive)
+[![devDependency Status](https://david-dm.org/brekkehj/Expressive/dev-status.svg)](https://david-dm.org/brekkehj/Expressive#info=devDependencies)
+
 Expressive is an awesome, beautiful CMS for [Express.js](http://expressjs.com) and [Node.js](http://nodejs.org). Expressive is extendable, themeable, testable and growing.
 
 **Expressive is in a very unstable alpha state**
@@ -18,7 +22,7 @@ To run Expressive, you have a number of options. My favorite is using [Nodemon](
 	$ DEBUG=expressive:* npm start
 	$ DEBUG=expressive:* nodemon
 
-You can then sign into the administration pages at `localhost:3000/admin`. Most unfinished areas of Expressive will give you a 404 error.
+Once you're running, just open <http://localhost:3000/> and follow the setup guide. You'll need to have a MongoDB instance running. Once you're in, you can sign into the administration pages at <http://localhost:3000/admin>. *Most unfinished areas of Expressive will give you a 404 error.*
 
 ## Extensions
 
@@ -29,6 +33,8 @@ An example extension is included with Expressive, showing how awesome the extend
 *TODO:* Write better documentation.
 
 ## Contributing
+
+Checkout the [Expressive GitHub Wiki](https://github.com/brekkehj/Expressive/wiki/Development) for more information about the development cycle.
 
 To make contributions to Expressive, follow the steps below to get your changes in the CMS. My mission with Expressive is to build a largely *extendable* CMS, so try to write code that allows for some awesome extensions around it.
 
@@ -52,4 +58,6 @@ You can run tests through npm or through mocha. Both will have the same result.
 
 ## License
 
-Expressive is available under the GNU GPL v3.0 License. See the LICENSE file in this repository for the legal terms.
+Expressive is available under the GNU GPL v3.0 License.
+
+See the [LICENSE](https://github.com/brekkehj/Expressive/blob/master/LICENSE) for the more information about the GNU licence legal terms.
