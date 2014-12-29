@@ -43,13 +43,13 @@ nav.navbar.navbar-default.navbar-static-top#expressive-navigation
 								each subitem in item.submenu
 									if subitem.id
 										// Block section
-										each sectItem in subitem.items
+										each sectItem in (subitem.items || [])
 											li(class=_expNavMatches(active, sectItem.active)?'active':'', class=sectItem.divider?'divider':'')
 												unless sectItem.divider
 													a(href=sectItem.href)= sectItem.title
 												if sectItem.new
 													a.new-item(href=typeof sectItem.new == 'string' ? sectItem.new : sectItem.new.href)= sectItem.new.title ? sectItem.new.title : 'New'
-										unless subitem.hidesDivider || item.submenu.indexOf(subitem) == item.submenu.length-1 || subitem.items.length == 0
+										unless subitem.hidesDivider || item.submenu.indexOf(subitem) == item.submenu.length-1 || (subitem.items || []).length == 0
 											li.divider
 									else
 										li(class=_expNavMatches(active, subitem.active)?'active':'', class=subitem.divider?'divider':'')

@@ -3,8 +3,12 @@ var router = express.Router({ strict: true });
 var path = require('path');
 var _ = require('underscore');
 
+require('mongoose-pagination');
+
+var debug = require('debug')('expressive:routes:admin:users');
+
 router.get('/', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.requireOptions('title', 'maxRows'), next);
+	req.data.requireUser(req, res, { users: 'read' }, req.data.requireOptions('title', 'maxRows'), next);
 }, function(req, res) {
 	var table = {
 		plural: "accounts",
@@ -14,11 +18,12 @@ router.get('/', function(req, res, next) {
 			{
 				title: 'Name',
 				className: 'user-name',
-				structure: '<a href="/admin/users/{{id}}">{{name.display}}</a>',
+				structure: '{{name.display}}',
 				actions: [
-					{ url: '/admin/users/{{id}}', title: 'Edit' },
-					{ url: '/admin/users/{{id}}/activate', title: 'Activate', if: function(row) { return row.active == false; } },
-					{ url: '/admin/users/{{id}}/deactivate', title: 'Deactivate', className: 'text-danger', if: function(row) { return row.active == true && row.id != req.user.id; } }
+					{ url: '/admin/users/{{id}}', title: 'Edit', if: function(row) { return req.user.can(row, 'write'); } },
+					{ url: '/admin/users/{{id}}', title: 'View', if: function(row) { return !req.user.can(row, 'write') && req.user.can(row, 'read'); } },
+					{ url: '/admin/users/{{id}}/activate', title: 'Activate', if: function(row) { return req.user.can(row, 'write') && row.active == false; } },
+					{ url: '/admin/users/{{id}}/deactivate', title: 'Deactivate', className: 'text-danger', if: function(row) { return req.user.can(row, 'write') && row.active == true && row.id != req.user.id; } }
 				]
 			}, { 
 				title: 'Email',
@@ -29,26 +34,31 @@ router.get('/', function(req, res, next) {
 	};
 	var User = req.data.model('User');
 	var page = req.query.page ? parseInt(req.query.page) : 1;
-	User.paginate({}, page, req.options.maxRows, function(err, pages, users, items) {
+	var rows = req.options.max_rows || 10;
+	User.withAccess(req.user, ['read']).paginate(page, rows, function(err, users, items) {
+		var pages = Math.floor(items / rows);
 		table.pagination = { pages: pages, page: page, items: items };
 		table.data = users;
-		res.render('admin/users', { title: 'Users', active: 'users', table: table });
+		res.render('admin/users', { title: 'Users', active: 'users', table: table, editable: req.user.can('users', 'write') });
 	});
 });
 
 router.get('/new', function(req, res, next) {
-	req.data.requireUser(req, res, req.data.requireOptions('title'), next);
+	req.data.requireUser(req, res, { users: 'write' }, req.data.requireOptions('title'), next);
 }, function(req, res) {
 	var User = req.data.model('User');
 	var user = new User();
-	res.render('admin/user', { title: 'New User', user: user, active: 'users/new', isNew: true });
+
+	res.render('admin/user', { title: 'New User', user: user, active: 'users/new', isNew: true, editable: true });
 });
 
 router.post('/new', function(req, res, next) {
-	req.data.requireUser(req, res, next);
+	req.data.requireUser(req, res, { users: 'write' }, next);
 }, function(req, res, next) {
 	var User = req.data.model('User');
 	var user = new User();
+
+	req.user.can(user, [ 'read', 'write' ]);
 
 	user.name.first = req.body['name.first'];
 	user.name.last = req.body['name.last'];
@@ -73,11 +83,19 @@ router.post('/new', function(req, res, next) {
 
 router.get('/:id', function(req, res, next) {
 	req.data.requireUser(req, res, req.data.requireOptions('title'), next);
-}, function(req, res) {
+}, function(req, res, next) {
 	var User = req.data.model('User');
 	User.findById(req.params.id, function(err, user) {
 		if (user) {
-			res.render('admin/user', { title: user.name.display, active: 'users/' + user.id, user: user });
+			if (!req.user.can(user, 'read')) {
+				var err = new Error("You do not have permission to view this user.");
+				err.status = 401;
+				next(err);
+
+				return;
+			}
+
+			res.render('admin/user', { title: user.name.display, active: 'users/' + user.id, user: user, editable: req.user.can(user, 'write') });
 		} else {
 			res.redirect('/admin/users');
 		}
@@ -91,6 +109,14 @@ router.get('/:id/deactivate', function(req, res, next) {
 	
 	User.findById(req.params.id, function(err, user) {
 		if (user) {
+			if (!req.user.can(user, 'write')) {
+				var err = new Error("You do not have permission to edit this user.");
+				err.status = 401;
+				next(err);
+
+				return;
+			}
+			
 			user.active = false;
 			user.save(function(err) {
 				req.flash('success', 'This account has been deactivated. They will not be able to sign in.');
@@ -108,6 +134,14 @@ router.get('/:id/activate', function(req, res, next) {
 	
 	User.findById(req.params.id, function(err, user) {
 		if (user) {
+			if (!req.user.can(user, 'write')) {
+				var err = new Error("You do not have permission to edit this user.");
+				err.status = 401;
+				next(err);
+
+				return;
+			}
+
 			user.active = true;
 			user.save(function(err) {
 				req.flash('success', 'This account has been activated. They can now sign in.');
@@ -126,27 +160,35 @@ router.post('/:id', function(req, res, next) {
 
 	User.findById(req.params.id, function(err, user) {
 		if (user) {
+			if (!req.user.can(user, 'write')) {
+				var err = new Error("You do not have permission to edit this user.");
+				err.status = 401;
+				next(err);
+
+				return;
+			}
+
 			user.name.first = req.body['name.first'];
 			user.name.last = req.body['name.last'];
 			user.email = req.body['email'];
 
-			_.each(req.customFields['User'], function(customField) {
-				var value = (req.body['customField'] || {})[customField.name];
-				if (value === undefined && customField.type === Boolean) {
-					value = false;
-				} else if (customField.type === Boolean) {
-					value = true;
-				} else if (value === undefined) {
-					value = customField.default;
-				}
-				console.log('Value', value, customField, value !== customField.default);
-				if (value !== customField.default || customField.type === Boolean) {
-					user.customField(customField.name, value);
-				} else {
-					user.customField(customField.name, null);
-				}
-			})
-			console.log('Custom fields', user, req.body['customField']);
+			if (req.customFields) {
+				_.each(req.customFields['User'], function(customField) {
+					var value = (req.body['customField'] || {})[customField.name];
+					if (value === undefined && customField.type === Boolean) {
+						value = false;
+					} else if (customField.type === Boolean) {
+						value = true;
+					} else if (value === undefined) {
+						value = customField.default;
+					}
+					if (value !== customField.default || customField.type === Boolean) {
+						user.customField(customField.name, value);
+					} else {
+						user.customField(customField.name, null);
+					}
+				});
+			}
 			
 			var save = function(){
 				user.save(function(err) {

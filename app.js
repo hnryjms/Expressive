@@ -108,7 +108,8 @@ app.use(function(req, res, next) {
         res.locals.me = req.user
         
         // TODO: Change admin bar pieces as the users role changes
-        res.locals.adminBar = app._generateAdminBar(req.user);
+        res.locals.adminBar = { leftItems: [], rightItems: [] };
+        app._generateAdminBar(req.user);
     }
     if (data.is.connected && data.is.configured) {
         next();

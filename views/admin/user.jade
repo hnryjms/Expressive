@@ -21,35 +21,40 @@ block content
 				input(type='hidden', name='_csrf', value=req.csrfToken())
 				.form-group
 					label(for='firstname') First name
-					input.form-control#firstname(type='text', name='name.first', value=user.name.first, autofocus=user.name.first===undefined)
+					input.form-control#firstname(type='text', name='name.first', value=user.name.first, autofocus=user.name.first===undefined, disabled=!editable)
 				.form-group
 					label(for='lastname') Last name
-					input.form-control#lastname(type='text', name='name.last', value=user.name.last)
+					input.form-control#lastname(type='text', name='name.last', value=user.name.last, disabled=!editable)
 				.form-group.divider
 				.form-group
 					label(for='email') Email address
-					input.form-control#email(type='email', name='email', value=user.email)
+					input.form-control#email(type='email', name='email', value=user.email, disabled=!editable)
 				if user.id == me.id
-					p.hidden#cplink
-						a(href="#") Change password <span class="caret"></span>
-					#changepassword.form-group
-						.form-group
-							label(for='password') New password
-							input.form-control#password(type='password', name='new_password')
-						.form-group
-							label(for='password2') New password (again)
-							input.form-control#password2(type='password', name='new_password2')
-						.form-group
-							label(for='opassword') Current password
-							input.form-control#opassword(type='password', name='password')
+					if editable
+						p.hidden#cplink
+							a(href="#") Change password <span class="caret"></span>
+						#changepassword.form-group
+							.form-group
+								label(for='password') New password
+								input.form-control#password(type='password', name='new_password')
+							.form-group
+								label(for='password2') New password (again)
+								input.form-control#password2(type='password', name='new_password2')
+							.form-group
+								label(for='opassword') Current password
+								input.form-control#opassword(type='password', name='password')
 				else
 					.form-group.divider
 					.checkbox
 						label
-							input#active(type='checkbox', name='active', value='true', checked=user.active)
+							input#active(type='checkbox', name='active', value='true', checked=user.active, disabled=!editable)
 							| Active <span class="text-muted">(can currently log in)</span>
 					if !user.password && !user.rid
 						p#active We'll send an email to this person asking them to create a new password.
-				+customFields('User', user)
-				p.text-right
-					button.btn.btn-primary(type='submit') Save &rarr;
+				+customFields('User', user, !editable)
+				if editable
+					p.text-right
+						button.btn.btn-primary(type='submit') Save &rarr;
+				else
+					.form-group.divider
+					p.text-center.text-muted You can't edit #{user.name.first}'s account.

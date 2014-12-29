@@ -3,21 +3,22 @@ var Schema = Mongoose.Schema;
 var STATES = Mongoose.STATES;
 
 var Crypt = require('bcrypt');
-var Paginate = require('mongoose-paginate');
 var CustomFields = require('mongoose-custom-fields');
 var ACL = require('mongoose-acl');
+var _ = require('underscore');
 
 var debug = require('debug')('expressive:schemas:user');
 
 var hashSize = 8;
 
 var User = new Schema({
+	_acl: Object,
 	name: {
 		first: { type: String, required: 'You must enter your first name.' },
 		last: { type: String, required: 'You must enter your last name.' }
 	},
 	email: { type: String, required: 'You must enter your email.' },
-	password: { type: String, required: 'You must enter a password.' },
+	password: { type: String },
 	active: { type: Boolean, default: true },
 	rid: String
 });
@@ -50,6 +51,10 @@ User.path('email').validate(function(value, next) {
 }, 'Your email address already is registered to an account.');
 
 User.path('password').validate(function(value) {
+	if (!value) {
+		// New users don't have a password
+		return true;
+	}
 	if (value.indexOf('$2a$') === 0 && Crypt.getRounds(value) == hashSize) {
 		// All hashed passwords have already been validated.
 		return true;
@@ -133,7 +138,109 @@ User.methods.authenticate = function(password, callback) {
 	});
 }
 
-User.plugin(Paginate);
+User.methods.can = function(role, permissions) {
+	var user = this;
+
+	if (typeof role == 'string') {
+		// Create anonymous ACL object for a role (on the current user)
+		var roleName = role;
+		role = {
+			getAccess: function(key) {
+				return (user._acl || {})['role:' + roleName] || [];
+			},
+			setAccess: function(user_key, value) {
+				user._acl || (user._acl = {});
+				user._acl['role:' + roleName] = value;
+				user.markModified('_acl');
+			}
+		};
+	};
+	if ((role.collection || {}).name == 'users') {
+		// Create anonymous ACL object for permissions (on any user).
+		var otherUser = role;
+		role = {
+			getAccess: function(key) {
+				return (otherUser._acl || {})[key] || [];
+			},
+			setAccess: function(user_key, value) {
+				otherUser._acl || (otherUser._acl = {});
+				otherUser._acl[user_key] = value;
+				otherUser.markModified('_acl');
+			}
+		}
+	};
+
+	if (permissions === null) {
+		// Remove all permission for role
+		user.setAccess(role, []);
+	} else if (typeof permissions == 'string' || permissions === undefined) {
+		// Get permissions for role
+		var abilites = user.getAccess(role);
+		if (permissions) {
+			return abilites.indexOf(permissions) >= 0;
+		} else {
+			return abilites;
+		}
+	} else {
+		// Set permissions for role
+		user.setAccess(role, permissions);
+	}
+}
+User.methods.promote = function(level) {
+	var user = this;
+
+	user._acl = {};
+	if (level == 'admin') {
+		user.can('users', [ 'read', 'write' ]);
+	}
+}
+User.pre('save', function(next) {
+	var user = this;
+	if (!user._acl || !user.can(user, 'read')) {
+		// Setup or repair minimum user permissions
+		user.can(user, [ 'read', 'write' ]);
+	}
+	next();
+});
+User.statics.withAccess = function(subject, perms, callback) {
+	if (typeof subject == 'string') {
+		subject = [ subject ];
+	}
+	if (_.isArray(subject)) {
+		var roles = subject;
+		subject = {
+			getAccessKeys: function() {
+				return _.map(roles, function(value) {
+					return 'role:' + value;
+				});
+			}
+		}
+	}
+    var keys = subject.getAccessKeys();
+
+    var or = keys.map(function(key) {
+        var query = {};
+        var path = ['_acl', key].join('.');
+
+        query[path] = { $all: perms };
+        return query;
+    });
+
+    var cursor = this.find({ $or: or });
+
+    if (callback) {
+        cursor.exec(callback);
+    }
+
+    return cursor;
+};
+var toJSON = User.methods.toJSON;
+User.methods.toJSON = function() {
+    var data = toJSON ? toJSON.call(this) : this.toObject();
+    delete data['_acl'];
+    return data;
+};
+
 User.plugin(CustomFields);
 User.plugin(ACL.subject);
 

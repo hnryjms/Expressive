@@ -97,6 +97,7 @@ router.post('/site', function(req, res) {
 			user.name.first = req.body['name.first'];
 			user.name.last = req.body['name.last'];
 			user.email = req.body['email'];
+			user.promote('admin');
 
 			if (!req.user || (req.body['password_again'] && req.body['password_again'].length > 0)) {
 				user.password = req.body['password_again'];
@@ -121,7 +122,6 @@ router.post('/site', function(req, res) {
 				}
 				// TODO: SETUP BLOG TYPE HERE req.body['home']
 				req.login(user, function(err) {
-					console.log('Logged in::',  req.user, err);
 					var c = Config.database();
 					c.installed = true;
 					c.options.server.auto_reconnect = false;

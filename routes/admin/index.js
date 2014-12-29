@@ -128,7 +128,7 @@ router.use(function(req, res, next) {
 });
 
 router.use(function(err, req, res, next) {
-    if (err.status == 401) {
+    if (err.status == 401 && !req.user) {
         res.redirect('/admin/login?next=' + encodeURIComponent(req.originalUrl));
     } else next(err);
 });

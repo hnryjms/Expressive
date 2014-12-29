@@ -146,10 +146,18 @@ var Data = function(baseConfig) {
 			}
 		}
 	}
-	this.requireUser = function(req, res, success, next) {
+	this.requireUser = function(req, res, role, success, next) {
 		if (!next) {
 			next = success;
 			success = null;
+		};
+		if (!next) {
+			next = role;
+			role = null;
+		};
+		if (typeof role == 'function') {
+			success = role;
+			role = null;
 		};
 
 		if (!req.user) {
@@ -157,6 +165,26 @@ var Data = function(baseConfig) {
 			err.status = 401;
 			next(err);
 		} else {
+			if (role) {
+				var isCapable = true;
+				_.each(role, function(value, key) {
+					if (!_.isArray(value)) {
+						value = [ value ];
+					};
+					_.each(value, function(name) {
+						if (isCapable) {
+							isCapable = req.user.can(key, name);
+						}
+					});
+				});
+				if (!isCapable) {
+					var err = new Error("You do not have permission to do this.");
+					err.status = 401;
+					next(err);
+					return;
+				}
+			};
+
 			if (success) {
 				success(req, res, next)
 			} else {

@@ -16,7 +16,7 @@ mixin navigation
 	if me
 		include _navigation
 
-mixin customFields(object, item)
+mixin customFields(object, item, disabled)
 	if req.customFields
 		- var fields = req.customFields[object] || [];
 		if fields.length > 0
@@ -30,7 +30,7 @@ mixin customFields(object, item)
 				if field.type === Boolean
 					.checkbox
 						label
-							input(id=fid, type='checkbox', name=fname, value='true', checked=value)
+							input(id=fid, type='checkbox', name=fname, value='true', checked=value, disabled=disabled)
 							!= field.title
 					if field.description
 						p(id=fid)!= field.description
@@ -39,4 +39,89 @@ mixin customFields(object, item)
 						label(for=fid)!= field.title
 						if field.description
 							label.p(for=fid)!= field.description
-						input.form-control(id=fid, type='text', name=fname, value=value)
+						input.form-control(id=fid, type='text', name=fname, value=value, disabled=disabled)
+
+mixin table(table, disabled)
+	.table-responsive.admin-table
+		table.table
+			if table.columns && table.columns.length > 0
+				tr.header
+					each header in table.columns
+						th.header-row(class=header.className, id=header.id)= header.title
+				if table.data && table.data.length > 0
+					each row in table.data
+						tr.data(class=row.className)
+							each cell in table.columns
+								td(class=table.columns.indexOf(cell) == 0 ? 'main' : '')
+									- var actions = [];
+									- for (var actionKey in cell.actions) { var action = cell.actions[actionKey]; if (!action.if || action.if(row)) { actions.push(action); } }
+									- for (var actionKey in row.actions) { var action = row.actions[actionKey]; actions.push(action); }
+
+									if cell.structure 
+										- var item = req.data.hbs(cell.structure)(row)
+										if actions.length > 0
+											a.primary-action(href=req.data.hbs(actions[0].url)(row), class=actions[0].className)!= item
+										else
+											!= item
+									else
+										| cell[cell.property]
+									if table.columns.indexOf(cell) == 0 && (cell.actions || row.actions)
+										ul.actions
+											each action in actions
+												li
+													a(href=req.data.hbs(action.url)(row), class=action.className)= req.data.hbs(action.title)(row)
+				else
+					tr.no-data
+						td(colspan=table.columns.length)= table.plural ? "You don't have any " + table.plural + " right now." : "You don't have anything added right now."
+				if table.addURL && !disabled
+					tr.add-data
+						td(colspan=table.columns.length)
+							a(href=table.addURL)= table.singular ? "+ Add New " + table.singular.charAt(0).toUpperCase() + table.singular.slice(1) : "+ Add New"
+			else
+				tr.no-data
+					td Your table is configured incorrectly.<br/>Tables must have a <code>table.columns</code> array.
+
+	if table.pagination && table.pagination.pages > 1 && table.columns && table.columns.length > 0
+		.text-center
+			ul.pagination
+				if table.pagination.page == 1
+					li.disabled
+						span &laquo;
+				else
+					li
+						a(href='?page=' + (table.pagination.page - 1)) &laquo;
+
+				if (table.pagination.page - 4 > 1)
+					li
+						a(href='?page=1') 1
+					li.disabled
+						span ...
+				else if (table.pagination.page - 3 > 1)
+					li
+						a(href='?page=1') 1
+
+				- for (var i = table.pagination.page-3; i <= table.pagination.page + 3; i++)
+					if table.pagination.page == i
+						li.active
+							a(href='?page=' + i)= i + " "
+								span.sr-only (current)
+					else if i > 0 && i <= table.pagination.pages
+						li
+							a(href='?page=' + i)= i
+
+				if table.pagination.page + 4 == table.pagination.pages
+					li
+						a(href='?page=' + table.pagination.pages)
+							span= table.pagination.pages
+				else if table.pagination.page + 4 < table.pagination.pages
+					li.disabled
+						span ...
+					li
+						a(href='?page=' + table.pagination.pages)= table.pagination.pages
+
+				if table.pagination.page == table.pagination.pages
+					li.disabled
+						span &raquo;
+				else
+					li
+						a(href='?page=' + (table.pagination.page + 1)) &raquo;
