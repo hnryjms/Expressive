@@ -3,7 +3,7 @@ var request = require('supertest');
 
 var Data = require('../data');
 var data = new Data({
-	host: '127.0.0.1',
+	host: '127.0.0.1',	
 	database: 'expressive-tests'
 });
 
@@ -34,13 +34,6 @@ describe('data', function(){
 		});
 
 		require('./data/user')(data);
-
-		describe('Option', function(){
-			it('should return Option object', function() {
-				var Option = data.model('Option');
-				expect(Option).to.be.a(Object);
-				expect(Option.modelName).to.eql('Option');
-			});
-		});
+		require('./data/option')(data);
 	});
 });

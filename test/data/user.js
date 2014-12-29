@@ -1,5 +1,5 @@
 var expect = require('expect.js');
-var request = require('supertest');
+var _ = require('underscore');
 
 var userTests = function(data) {
 
@@ -308,6 +308,219 @@ var userTests = function(data) {
 				var json = me.toJSON();
 
 				expect(json._acl).to.be(undefined);
+			});
+		});
+		describe('user.can()', function() {
+			it('should exist', function() {
+				var me = new User();
+
+				expect(me.can).to.be.a(Function);
+			});
+			it('should save', function() {
+				var me = new User();
+
+				me.can('users', ['read', 'write']);
+				expect(me._acl).to.have.key('role:users');
+				expect(me._acl['role:users']).to.be.eql(['read', 'write']);
+			});
+			it('should remove', function() {
+				var me = new User();
+
+				me.can('users', ['read', 'write']);
+				me.can('users', null);
+				expect(me._acl['role:users']).to.not.be.ok();
+			});
+			it('should deny for missing', function() {
+				var me = new User();
+
+				var canRead = me.can('users', 'read');
+				expect(canRead).to.not.be.ok();
+			});
+			it('should deny for excluded', function() {
+				var me = new User();
+				me.can('users', ['read']);
+
+				var canWrite = me.can('users', 'write');
+				expect(canWrite).to.not.be.ok();
+			});
+			it('should allow for included', function() {
+				var me = new User();
+				me.can('users', ['read', 'write']);
+
+				var canWrite = me.can('users', 'write');
+				expect(canWrite).to.be.ok();
+			});
+			it('should relationship accept', function() {
+				var me = new User();
+				var you = new User();
+
+				me.can(you, ['read', 'write']);
+				expect(you._acl).to.have.keys(me.getAccessKeys());
+			});
+			it('should relationship deny', function() {
+				var me = new User();
+				var you = new User();
+
+				me.can(you, ['read']);
+
+				var canWrite = me.can(you, 'write');
+				expect(canWrite).to.not.be.ok();
+			});
+			it('should relationship accept', function() {
+				var me = new User();
+				var you = new User();
+
+				me.can(you, ['read', 'write']);
+
+				var canWrite = me.can(you, 'write');
+				expect(canWrite).to.be.ok();
+			});
+			it('should collection inherit', function() {
+				var me = new User();
+				var you = new User();
+
+				me.can('users', ['read', 'write']);
+
+				var canWrite = me.can(you, 'write');
+				expect(canWrite).to.be.ok();
+			});
+			it('should not inhert when explicit', function() {
+				var me = new User();
+				var you = new User();
+
+				me.can('users', ['read', 'write']);
+				me.can(you, ['read']);
+
+				var canWrite = me.can(you, 'write');
+				expect(canWrite).to.not.be.ok();
+			});
+		});
+		describe('user.promote()', function() {
+			it('should exist', function() {
+				var me = new User();
+
+				expect(me.promote).to.be.a(Function);
+			});
+			it.skip('should add admin permissions', function() {
+				var me = new User();
+
+				me.promote('admin');
+
+				var roles = {
+					users: [ 'read', 'write' ],
+					posts: [ 'read', 'write' ],
+					pages: [ 'read', 'write' ],
+					media: [ 'read', 'write' ],
+					themes: [ 'read', 'write' ],
+					options: [ 'read', 'write' ]
+				};
+				_.each(roles, function(perms, role) {
+					_.each(perms, function(perm) {
+						var canPerform = me.can(role, perm);
+						if (!canPerform) {
+							throw new Error("Admin should have role: " + role + "#" + perm);
+						}
+					});
+				});
+			});
+		});
+		describe('withAccess', function() {
+			it('should exist', function() {
+				expect(User.withAccess).to.be.a(Function);
+			});
+			it('should find me', function(done) {
+				var me = fullUser('james@yourdomain.com', 'mypassword');
+
+				me.can(me, ['read', 'write']);
+
+				me.save(function(err) {
+					expect(err).to.not.be.ok();
+
+					User.withAccess(me, ['read','write'], function(err, users) {
+						expect(err).to.not.be.ok();
+						expect(users).to.have.length(1);
+						expect(users[0].id).to.be.eql(me.id);
+
+						done();
+					});
+				});
+			});
+			it('should not find me', function(done) {
+				var me = fullUser('james@yourdomain.com', 'mypassword');
+
+				me.can(me, ['read']);
+
+				me.save(function(err) {
+					expect(err).to.not.be.ok();
+
+					User.withAccess(me, ['write'], function(err, users) {
+						expect(err).to.not.be.ok();
+						expect(users).to.have.length(0);
+
+						done();
+					});
+				});
+			});
+			it('should find inherited', function(done) {
+				var me = fullUser('james@yourdomain.com', 'mypassword');
+				var you = fullUser('john@yourdomain.com', 'yourpassword');
+
+				me.can('users', ['read', 'write']);
+
+				me.save(function(err) {
+					expect(err).to.not.be.ok();
+
+					you.save(function(err) {
+						expect(err).to.not.be.ok();
+
+						User.withAccess(me, ['write'], function(err, users) {
+							expect(err).to.not.be.ok();
+							expect(users).to.have.length(2);
+
+							done();
+						});
+					});
+				});
+			});
+			it('should not find explicit', function(done) {
+				var me = fullUser('james@yourdomain.com', 'mypassword');
+				var you = fullUser('john@yourdomain.com', 'yourpassword');
+
+				me.can('users', ['read', 'write']);
+				me.can(you, ['read']);
+
+				me.save(function(err) {
+					expect(err).to.not.be.ok();
+
+					you.save(function(err) {
+						expect(err).to.not.be.ok();
+
+						User.withAccess(me, ['write'], function(err, users) {
+							expect(err).to.not.be.ok();
+							expect(users).to.have.length(1);
+							expect(users[0].id).to.be.eql(me.id);
+
+							done();
+						});
+					});
+				});
+			});
+			it('should find roles', function(done) {
+				var me = fullUser('james@yourdomain.com', 'mypassword');
+
+				me.can('users', ['read', 'write']);
+
+				me.save(function(err) {
+					expect(err).to.not.be.ok();
+
+					User.withAccess('users', ['write'], function(err, users) {
+						expect(err).to.not.be.ok();
+						expect(users).to.have.length(1);
+						expect(users[0].id).to.be.eql(me.id);
+
+						done();
+					});
+				});
 			});
 		});
 	});

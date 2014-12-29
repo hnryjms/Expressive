@@ -170,7 +170,7 @@ User.methods.can = function(role, permissions) {
 
 	if (permissions === null) {
 		// Remove all permission for role
-		user.setAccess(role, []);
+		user.setAccess(role, null);
 	} else if (typeof permissions == 'string' || permissions === undefined) {
 		// Get permissions for role
 		var abilites = user.getAccess(role);
@@ -208,23 +208,23 @@ User.pre('save', function(next) {
 	next();
 });
 User.statics.withAccess = function(user, perms, callback) {
-    var keys = user.getAccessKeys();
+	var keys = (typeof user == 'string' ? ['role:'+user] : user.getAccessKeys());
 
-    var or = keys.map(function(key) {
-        var query = {};
-        var path = ['_acl', key].join('.');
+	var or = keys.map(function(key) {
+		var query = {};
+		var path = ['_acl', key].join('.');
 
-        query[path] = { $all: perms };
-        return query;
-    });
+		query[path] = { $all: perms };
+		return query;
+	});
 
-    var cursor = this.find({ $or: or });
+	var cursor = this.find({ $or: or });
 
-    if (callback) {
-        cursor.exec(callback);
-    }
-
-    return cursor;
+	if (callback) {
+		cursor.exec(callback);
+	}
+	
+	return cursor;
 };
 var toJSON = User.methods.toJSON;
 User.methods.toJSON = function() {
