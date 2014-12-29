@@ -5,6 +5,7 @@ var STATES = Mongoose.STATES;
 var Crypt = require('bcrypt');
 var CustomFields = require('mongoose-custom-fields');
 var ACL = require('mongoose-acl');
+ACL.inherit = require('./acl.withAccessInherited');
 var _ = require('underscore');
 
 var debug = require('debug')('expressive:schemas:user');
@@ -159,6 +160,7 @@ User.methods.can = function(role, permissions) {
 		// Create anonymous ACL object for permissions (on any user).
 		var otherUser = role;
 		role = {
+			collection: { name: 'users' },
 			getAccess: function(key) {
 				return (otherUser._acl || {})[key] || [];
 			},
@@ -176,6 +178,13 @@ User.methods.can = function(role, permissions) {
 	} else if (typeof permissions == 'string' || permissions === undefined) {
 		// Get permissions for role
 		var abilites = user.getAccess(role);
+		if (abilites.length == 0) {
+			// Inherit abilities from parent if none are set.
+			var parent = (role.collection || {}).name;
+			if (parent) {
+				abilites = user.can(parent);
+			}
+		}
 		if (permissions) {
 			return abilites.indexOf(permissions) >= 0;
 		} else {
@@ -202,21 +211,8 @@ User.pre('save', function(next) {
 	}
 	next();
 });
-User.statics.withAccess = function(subject, perms, callback) {
-	if (typeof subject == 'string') {
-		subject = [ subject ];
-	}
-	if (_.isArray(subject)) {
-		var roles = subject;
-		subject = {
-			getAccessKeys: function() {
-				return _.map(roles, function(value) {
-					return 'role:' + value;
-				});
-			}
-		}
-	}
-    var keys = subject.getAccessKeys();
+User.statics.withAccess = function(user, perms, callback) {
+    var keys = user.getAccessKeys();
 
     var or = keys.map(function(key) {
         var query = {};
@@ -243,5 +239,6 @@ User.methods.toJSON = function() {
 
 User.plugin(CustomFields);
 User.plugin(ACL.subject);
+User.plugin(ACL.inherit);
 
 module.exports = User;

@@ -3,7 +3,7 @@ extends _layout
 block content
 	h1 Accounts
 		if editable
-			| <a href="/admin/users/new" class="btn btn-default">Add New</a>
+			|  <a href="/admin/users/new" class="btn btn-default">Add New</a>
 	p.lead Accounts give more people access to manage your website.
 
 	- var errors = req.flash('error');

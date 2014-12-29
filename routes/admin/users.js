@@ -58,8 +58,6 @@ router.post('/new', function(req, res, next) {
 	var User = req.data.model('User');
 	var user = new User();
 
-	req.user.can(user, [ 'read', 'write' ]);
-
 	user.name.first = req.body['name.first'];
 	user.name.last = req.body['name.last'];
 	user.email = req.body['email'];
@@ -77,6 +75,7 @@ router.post('/new', function(req, res, next) {
 			return;
 		}
 
+		req.flash('success', user.name.display + ' has been created.');
 		res.redirect('/admin/users/' + user.id);
 	});
 });
