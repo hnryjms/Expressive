@@ -71,10 +71,6 @@ User.path('password').validate(function(value) {
 User.pre('save', function(next) {
 	var user = this;
 	if (user.password && (user.password.indexOf('$2a$') !== 0 || Crypt.getRounds(user.password) != hashSize)) {
-		if (user.password.length < 6) {
-			user.invalidate('password', 'Your password must be six characters or longer.');
-		}
-
 		Crypt.hash(user.password, hashSize, function(err, hash) {
 			user.password = hash;
 			next(err);
