@@ -20,9 +20,6 @@ describe('data', function(){
 				expect(User).to.be.a(Object);
 				expect(User.modelName).to.eql('User');
 			});
-			it('should have pagination', function() {
-				expect(User).to.have.key('paginate');
-			});
 
 			it('should combine full name', function() {
 				var me = new User();
