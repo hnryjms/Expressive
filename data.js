@@ -120,7 +120,7 @@ var Data = function(baseConfig) {
 				connection.once('done', callback);
 			}
 			
-			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port, databaseConfig.options);
+			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port || 27017, databaseConfig.options);
 		}
 	};
 	this.requireOptions = function() {
