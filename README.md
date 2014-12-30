@@ -5,25 +5,25 @@
 [![devDependency Status](https://david-dm.org/brekkehj/Expressive/dev-status.svg)](https://david-dm.org/brekkehj/Expressive#info=devDependencies)
 [![Coverage Status](https://img.shields.io/coveralls/brekkehj/Expressive.svg)](https://coveralls.io/r/brekkehj/Expressive?branch=master)
 
-Expressive is an awesome, beautiful CMS for [Express.js](http://expressjs.com) and [Node.js](http://nodejs.org). Expressive is extendable, themeable, testable and growing.
+Expressive is a beautiful CMS for [Express](http://expressjs.com) and [Node.js](http://nodejs.org). Expressive is awesome, extendable, themeable, testable and growing.
 
 **Expressive is in a very unstable alpha state**
 
 ## Getting Started
 
-Expressive is not ready for production use, but here is how you can start contributing to Expressive to bring the system to a stable release.
+Expressive is not ready for production use, but here is how you can start contributing to Expressive.
 
 	$ npm install
 
-The rest of the installation should be hooked into the postinstall process (bower install, etc), and should complete successfully.
+The rest of the installation should be hooked into the postinstall process (`bower install`, etc), and should complete successfully.
 
-To run Expressive, you have a number of options. My favorite is using [Nodemon](http://nodemon.io) to watch for changes. This repo even includes a `.nodemonignore` to make sure Nodemon watches the right files and ignores ones that don't matter (usually). **You also** need to make sure you have MongoDB available somewhere. The Expressive installer should guide you through connecting the database and setting up your first user.
+To run Expressive, you have a number of options. My favorite is using [Nodemon](http://nodemon.io) to watch for changes. Expressive even includes `.nodemonignore` to make sure Nodemon watches the right files and ignores ones that don't matter (usually). **You also** need to make sure you have MongoDB available somewhere. The Expressive installer should guide you through connecting the database and setting up your first user.
 
 	$ DEBUG=expressive:* node ./bin/www
 	$ DEBUG=expressive:* npm start
 	$ DEBUG=expressive:* nodemon
 
-Once you're running, just open <http://localhost:3000/> and follow the setup guide. You'll need to have a MongoDB instance running. Once you're in, you can sign into the administration pages at <http://localhost:3000/admin>. *Most unfinished areas of Expressive will give you a 404 error.*
+Once Expressive is running, open <http://localhost:3000/> and follow the setup guide. You'll need to have a MongoDB instance running. Once you're in, you can sign into the administration pages at <http://localhost:3000/admin>. *Most unfinished areas of Expressive will give you a 404 error.*
 
 ## Extensions
 
@@ -31,7 +31,7 @@ An example extension is included with Expressive, showing how awesome the extend
 
 **Much of Expressive's extendability is unfinished, and continuously changing**
 
-*TODO:* Write better documentation.
+**TODO:** Write better documentation.
 
 ## Contributing
 
@@ -41,7 +41,7 @@ To make contributions to Expressive, follow the steps below to get your changes 
 
 1. Fork the `brekkehj/Expressive` repo
 1. Commit changes to your fork
-1. Create a pull request back into Expressive
+1. Create a pull request back into the original
 1. Win
 
 Make sure to run & write tests for your cool things.

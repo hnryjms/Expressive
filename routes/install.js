@@ -6,19 +6,18 @@ var Config = require('../config');
 var _ = require('underscore');
 
 router.use(function(req, res, next) {
-	var config = Config.database();
-	if (config.installed && !req.user) {
+	if (req.data.is.configured && !req.user) {
 		var err = new Error('Not Found');
 	    err.status = 404;
 	    next(err);
 	} else {
-		req.config = config;
+		req.config = Config.database();
 		next();
 	}
 });
 
 router.get('/', function(req, res) {
-	if (!!req.config.host && !!req.config.database && !!req.config.port && !!req.config.options) {
+	if (req.config.host && req.config.database) {
 		res.redirect('/install/site');
 	} else {
 		res.redirect('/install/database');
@@ -32,25 +31,25 @@ router.get('/database', function(req, res) {
 
 router.post('/database', function(req, res) {
 	var config = { options: {} };
-	if (req.body['host'].length > 0) {
+	if (req.body['host'] && req.body['host'].length > 0) {
 		config.host = req.body['host'];
 	} else {
 		config.host = '127.0.0.1';
 	}
-	if (req.body['port'].length > 0) {
+	if (req.body['port'] && req.body['port'].length > 0) {
 		config.port = parseInt(req.body['port']);
 	} else {
 		config.port = 27017;
 	}
-	if (req.body['database'].length > 0) {
+	if (req.body['database'] && req.body['database'].length > 0) {
 		config.database = req.body['database'];
 	} else {
 		config.database = 'expressive';
 	}
-	if (req.body['user'].length > 0) {
+	if (req.body['user'] && req.body['user'].length > 0) {
 		config.options.user = req.body['user'];
 	}
-	if (req.body['pass'].length > 0) {
+	if (req.body['pass'] && req.body['pass'].length > 0) {
 		config.options.pass = req.body['pass'];
 	}
 
@@ -100,7 +99,7 @@ router.post('/site', function(req, res) {
 			user.promote('admin');
 
 			if (!req.user || (req.body['password_again'] && req.body['password_again'].length > 0)) {
-				user.password = req.body['password_again'];
+				user.password = req.body['password'];
 
 				if (req.body['password'] != req.body['password_again']) {
 					user.invalidate("password", "Your passwords do not match.");
@@ -124,6 +123,10 @@ router.post('/site', function(req, res) {
 				req.login(user, function(err) {
 					var c = Config.database();
 					c.installed = true;
+					
+					c.options || (c.options = {});
+					c.options.server || (c.options.server = {});
+
 					c.options.server.auto_reconnect = false;
 					Config.database(c);
 					res.redirect('/install/done');

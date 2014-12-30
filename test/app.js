@@ -1,6 +1,8 @@
 var expect = require('expect.js');
 var request = require('supertest');
 
+var env = require('./_env');
+
 var app = require('../app');
 
 describe('app', function() {

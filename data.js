@@ -15,9 +15,8 @@ var MongoStore = require('connect-mongo')(Session);
 
 var Config = require('./config');
 
-var Data = function(baseConfig) {
-	var databaseConfig = Config.database();
-	var appConfig = Config.app();
+var Data = function(baseConfig, callback) {
+	var databaseConfig = baseConfig || Config.database();
 
 	_.extend(databaseConfig, baseConfig);
 
@@ -70,7 +69,9 @@ var Data = function(baseConfig) {
 		connection._hasOpened = false;
 		session = Session({
 			secret: 'expressive-fothzxhcgl9wiks',
-			key: 'expressive.session'
+			key: 'expressive.session',
+			resave: true,
+			saveUninitialized: false
 		});
 	});
 
@@ -105,22 +106,14 @@ var Data = function(baseConfig) {
 			_.extend(databaseConfig, newConfig);
 		};
 
-		if (!databaseConfig.host) {
-			return;
-		}
-
 		debug('Connecting to database', databaseConfig);
 
 		if (connection.readyState == Mongoose.STATES['connected']) {
 			connection.close(function(){
 				data.try(databaseConfig, callback);
 			});
-		} else {
-			if (typeof callback == 'function') {
-				connection.once('done', callback);
-			}
-			
-			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port || 27017, databaseConfig.options);
+		} else {			
+			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port || 27017, databaseConfig.options || {}, callback);
 		}
 	};
 	this.requireOptions = function() {
@@ -135,11 +128,6 @@ var Data = function(baseConfig) {
 					var opts = {};
 					for (var i = 0; i < options.length; i++) {
 						opts[options[i].name] = options[i].value;
-					};
-					for (var i = 0; i < args.length; i++) {
-						if (!opts.hasOwnProperty(args[i])) {
-							opts[args[i]] = appConfig[args[i]];
-						}
 					};
 					req.options = opts;
 					res.locals.options = opts;
@@ -286,9 +274,10 @@ var Data = function(baseConfig) {
 		this.model(schemaType, schema);
 	};
 
-	this.try(databaseConfig);
+	this.try(databaseConfig, callback);
 };
 
 Data.prototype.__proto__ = EventEmitter.prototype;
+Data.prototype.STATES = Mongoose.STATES;
 
 module.exports = Data;

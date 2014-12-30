@@ -1,40 +1,65 @@
 var debug = require('debug')('expressive:actions');
 
 var _ = require('underscore');
+var Config = require('./config');
 
 var Actions = function(app) {
 	this._app = app;
 };
 
 Actions.prototype._prepare = function(req, res) {
+	var config = Config.database();
+
 	req.parent = this;
 
 	this._req = req;
 	this._res = res;
+
+	req.data = this.get('data');
+	req.passport = this.get('passport');
+	res.locals.config = config;
+	res.locals.options = {};
+	res.locals.req = req;
+	res.locals._expNavMatches = function(active, item) {
+		return  active &&
+				item &&
+				(
+					(typeof item == 'string' && active == item) ||
+					(item instanceof RegExp && active.match(item))
+				);
+	}
+	res.locals.enqueuedHeader = [];
+	if (req.user) {
+		res.locals.me = req.user
+		
+		// TODO: Change admin bar pieces as the users role changes
+		res.locals.adminBar = { leftItems: [], rightItems: [] };
+		this._generateAdminBar(req.user);
+	}
 };
 Actions.prototype._generateAdminBar = function(user) {
-    var app = this;
-    app.addMenu({
-        title: 'Dashboard',
-        active: 'dashboard',
-        href: '/admin'
-    });
-    app.addMenu({
-        id: 'content',
-        title: 'Content',
-        active: /^(posts|pages|media|themes|extensions|settings)/,
-        href: '/admin/posts'
-    });
+	var app = this;
+	app.addMenu({
+		title: 'Dashboard',
+		active: 'dashboard',
+		href: '/admin'
+	});
+	app.addMenu({
+		id: 'content',
+		title: 'Content',
+		active: /^(posts|pages|media|themes|extensions|settings)/,
+		href: '/admin/posts'
+	});
 
-    app.addMenu('content', {
-        id: 'content-sources'
-    });
-    app.addMenu('content-sources', {
-       title: 'Posts',
-       active: 'posts',
-       href: '/admin/posts',
-       new: '/admin/posts/new'
-    });
+	app.addMenu('content', {
+		id: 'content-sources'
+	});
+	app.addMenu('content-sources', {
+	   title: 'Posts',
+	   active: 'posts',
+	   href: '/admin/posts',
+	   new: '/admin/posts/new'
+	});
 	app.addMenu('content-sources', {
 		title: 'Pages',
 		active: 'pages',
@@ -144,7 +169,7 @@ Actions.prototype.addMenu = function(location, items) {
 			for (var i = 0; i < this._res.locals.adminBar.leftItems.length; i++) {
 				var root = this._res.locals.adminBar.leftItems[i];
 				if (root.id && root.id == location) {
-                    root.submenu || (root.submenu = []);
+					root.submenu || (root.submenu = []);
 					root.submenu.push.apply(root.submenu, items);
 				} else if (root.submenu) {
 					for (var i2 = 0; i2 < root.submenu.length; i2++) {

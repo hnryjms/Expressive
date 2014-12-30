@@ -1,8 +1,22 @@
 var path = require('path');
 var fs = require('fs');
 
+var debug = require('debug')('expressive:config');
+
+var memCache = false;
+
+if (process.env.NODE_ENV == 'test') {
+	debug('Testing environment uses memory cache (not filesystem).');
+	memCache = {};
+}
+
 var _perform = function(config, write) {
 	if (write) {
+		if (memCache) {
+			memCache[config] = write;
+			return true;
+		}
+
 		var configDir = path.join(config, '../');
 		if (!fs.existsSync(configDir)) {
 			fs.mkdirSync(configDir);
@@ -11,6 +25,10 @@ var _perform = function(config, write) {
 
 		return write;
 	} else {
+		if (memCache) {
+			return memCache[config] || {};
+		}
+		
 		if (!fs.existsSync(config)) {
 			return {};
 		};
@@ -24,13 +42,6 @@ var database = function(write) {
 	return _perform(config, write);
 }
 
-var app = function(write) {
-	var config = path.join(__dirname, 'config', 'app.json');
-	
-	return _perform(config, write);
-}
-
 module.exports = {
-	database: database,
-	app: app
+	database: database
 }
