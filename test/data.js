@@ -1,12 +1,11 @@
 var expect = require('expect.js');
-var request = require('supertest');
 
 var env = require('./_env');
 var data = env.data;
 
 describe('data', function(){
 	it('should have model() function', function(){
-		expect(data).to.have.key('model');
+		expect(data.model).to.be.a(Function);
 	});
 
 	describe('model()', function(){

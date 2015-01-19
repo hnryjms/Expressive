@@ -4,9 +4,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var lessMiddleware = require('less-middleware');
 var flash = require('connect-flash');
-var passport = require('passport');
 var csrf = require('csurf');
 var requireMiddleware = require('requirejs-middleware');
+var _ = require('underscore');
 
 var debug = require('debug')('expressive:app');
 
@@ -14,10 +14,12 @@ var routes = require('./routes/index');
 
 var Data = require('./data');
 var Extend = require('./extend');
-var Actions = require('./actions');
+var InsertActions = require('./actions');
 var Config = require('./config');
 
 var app = express();
+
+InsertActions(app, express.request);
 
 app.use(function prepareData(req, res, next) {
 	if (!app.get('data')) {
@@ -30,10 +32,7 @@ app.use(function prepareData(req, res, next) {
 	}
 });
 
-app.set('passport', passport);
 var extend = new Extend(app);
-
-app.__proto__.__proto__ = new Actions(app);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -58,27 +57,10 @@ app.use(function expCSRF(req, res, next) {
 	}
 });
 
-var _dataInitialized = false;
 app.use(function passportWare(req, res, next) {
-	var passport = app.get('passport');
+	var data = app.get('data');
 
-	if (!_dataInitialized) {
-		_dataInitialized = true;
-		var data = app.get('data');
-
-		for (var engine in data.engines) {
-			debug('Adding alternate view engine %s', engine);
-			app.engine(engine, data.engines[engine]);
-		}
-
-		passport.use(data.passport());
-		passport.serializeUser(data.serializeUser());
-		passport.deserializeUser(data.deserializeUser());
-	}
-
-	passport.initialize()(req, res, function(){
-		passport.session()(req, res, next);
-	});
+	data.passport()(req, res, next);
 });
 
 app.use(lessMiddleware(path.join(__dirname, 'private'), {
@@ -111,7 +93,30 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(flash());
 
 app.use(function appPrepare(req, res, next) {
-	app._prepare(req, res);
+	var config = Config.database();
+
+	req.parent = app;
+
+	req.data = app.get('data');
+	res.locals.config = config;
+	res.locals.options = {};
+	res.locals.req = req;
+	res.locals._expNavMatches = function(active, item) {
+		return  active &&
+				item &&
+				(
+					(typeof item == 'string' && active == item) ||
+					(item instanceof RegExp && active.match(item))
+				);
+	}
+	res.locals.enqueuedHeader = [];
+	if (req.user) {
+		res.locals.me = req.user
+		
+		res.locals.adminBar = { leftItems: [], rightItems: [] };
+		req._generateAdminBar(req.user);
+	}
+
 	if (req.data.is.connected && req.data.is.configured) {
 		next();
 	} else if (!req.data.is.configured) {
@@ -139,7 +144,7 @@ app.use(extend.middleware());
 app.use('/', routes);
 
 /// catch 404 and forwarding to error handler
-app.use(function(req, res, next) {
+app.use(function catch404(req, res, next) {
 	var err = new Error('Not Found');
 	err.status = 404;
 	next(err);
@@ -153,7 +158,7 @@ app.use(extend.errorware());
 // will print stacktrace
 if (app.get('env') === 'development') {
 	app.locals.pretty = true;
-	app.use(function(err, req, res, next) {
+	app.use(function stdErrorDebug(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {
 			message: err.message,

@@ -5,22 +5,25 @@ var _ = require('underscore');
 var env = require('./_env');
 var Data = require('../data');
 
+var http = require('http');
+
 var app = require('../app');
+var server = http.createServer(app);
 var Config = require('../config');
 
 describe('install', function() {
 	// All tests run with a cleaned database
 	it('should require install', function(done){
-		request(app).get('/').expect(function(res) {
+		request(server).get('/').expect(function(res) {
 			expect(res.header.location).to.be.eql('/install');
 		}).end(done);
 	});
 	it('should require database install', function(done){
-		request(app).get('/install').expect(function(res) {
+		request(server).get('/install').expect(function(res) {
 			expect(res.header.location).to.be.eql('/install/database');
 		}).end(done);
 	});
-	describe('database install', function() {
+	env.describe.database('database install', function() {
 		before(function(){
 			// Use a `dummyData` instance to keep any issues out of other tests.
 			var config = _.clone(env.config.data);
@@ -38,10 +41,10 @@ describe('install', function() {
 		});
 
 		it('should allow database install', function(done){
-			request(app).get('/install/database').expect(200).end(done);
+			request(server).get('/install/database').expect(200).end(done);
 		});
 		it('should assume defaults database setup', function(done){
-			request(app).post('/install/database').send({
+			request(server).post('/install/database').send({
 
 			}).expect(function(res) {
 				expect(res.header.location).to.be.eql('/install/site');
@@ -53,7 +56,7 @@ describe('install', function() {
 			}).end(done);
 		});
 		it('should allow custom database setup', function(done){
-			request(app).post('/install/database').send({
+			request(server).post('/install/database').send({
 				host: 'localhost',
 				port: '27017',
 				database: 'mywebsite'
@@ -67,7 +70,7 @@ describe('install', function() {
 			}).end(done);
 		});
 		it('should fail invalid database setup', function(done){
-			request(app).post('/install/database').send({
+			request(server).post('/install/database').send({
 				host: 'localhost',
 				port: '27017',
 				database: 'mywebsite',
@@ -93,15 +96,19 @@ describe('install', function() {
 			expect(Config.database().host).to.be.ok();
 		});
 		it('should skip database setup', function(done){
-			request(app).get('/install').expect(function(res) {
+			request(server).get('/install').expect(function(res) {
 				expect(res.header.location).to.be.eql('/install/site');
 			}).end(done);
 		});
 		it('should allow website install', function(done){
-			request(app).get('/install/site').expect(200).end(done);
+			request(server).get('/install/site').expect(200).end(done);
 		});
-		it('should error password mismatch', function(done){
-			request(app).post('/install/site').send({
+		
+		/*
+		 *  These tests require a live database connection.
+		 */
+		env.it.database('should error password mismatch', function(done){
+			request(server).post('/install/site').send({
 				title: 'Expressive Tests',
 
 				'name.first': 'James',
@@ -113,8 +120,8 @@ describe('install', function() {
 				expect(res.header.location).to.be.eql('/install/site');
 			}).end(done);
 		});
-		it('should allow website setup', function(done){
-			request(app).post('/install/site').send({
+		env.it.database('should allow website setup', function(done){
+			request(server).post('/install/site').send({
 				title: 'Expressive Tests',
 
 				'name.first': 'James',

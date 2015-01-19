@@ -1,6 +1,8 @@
 var expect = require('expect.js');
 var _ = require('underscore');
 
+var env = require('../_env');
+
 var userTests = function(data) {
 
 	// We assume `data` is already an active connnection.
@@ -131,7 +133,7 @@ var userTests = function(data) {
 				});
 			});
 		});
-		describe('Save', function() {
+		env.describe.database('Save', function() {
 			it('should succeed', function(done) {
 				var me = new User();
 				me.name.first = 'James';
@@ -190,7 +192,7 @@ var userTests = function(data) {
 				var me = new User();
 				expect(me.authenticate).to.be.a(Function);
 			});
-			it('should error missing parameters', function(done) {
+			env.it.database('should error missing parameters', function(done) {
 				User.authenticate(null, null, function(err, user) {
 					expect(err).to.be.ok();
 					expect(err).to.be.an(Error);
@@ -211,7 +213,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should error wrong email', function(done) {
+			env.it.database('should error wrong email', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 				me.save(function(err) {
 					expect(err).to.not.be.ok();
@@ -226,7 +228,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should error wrong password', function(done) {
+			env.it.database('should error wrong password', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 				me.save(function(err) {
 					expect(err).to.not.be.ok();
@@ -241,7 +243,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should succeed', function(done) {
+			env.it.database('should succeed', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 				me.save(function(err) {
 					expect(err).to.not.be.ok();
@@ -271,7 +273,7 @@ var userTests = function(data) {
 					expect(err).to.be.an(Error);
 				});
 			});
-			it('should fail', function(done) {
+			env.it.database('should fail', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 
 				me.save(function(err) {
@@ -285,7 +287,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should succeed', function(done) {
+			env.it.database('should succeed', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 
 				me.save(function(err) {
@@ -428,7 +430,7 @@ var userTests = function(data) {
 			it('should exist', function() {
 				expect(User.withAccess).to.be.a(Function);
 			});
-			it('should find me', function(done) {
+			env.it.database('should find me', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 
 				me.can(me, ['read', 'write']);
@@ -445,7 +447,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should not find me', function(done) {
+			env.it.database('should not find me', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 
 				me.can(me, ['read']);
@@ -461,7 +463,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should find inherited', function(done) {
+			env.it.database('should find inherited', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 				var you = fullUser('john@yourdomain.com', 'yourpassword');
 
@@ -482,7 +484,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should not find explicit', function(done) {
+			env.it.database('should not find explicit', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 				var you = fullUser('john@yourdomain.com', 'yourpassword');
 
@@ -505,7 +507,7 @@ var userTests = function(data) {
 					});
 				});
 			});
-			it('should find roles', function(done) {
+			env.it.database('should find roles', function(done) {
 				var me = fullUser('james@yourdomain.com', 'mypassword');
 
 				me.can('users', ['read', 'write']);

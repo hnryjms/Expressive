@@ -6,8 +6,10 @@ var Handlebars = require('handlebars');
 var nodemailer = require('nodemailer');
 var EventEmitter = require('events').EventEmitter;
 var _ = require('underscore');
+var hat = require('hat');
 //var Dust = require('')
 
+var passport = require('passport');
 var PassportLocalStrategy = require('passport-local');
 var Mongoose = require('mongoose');
 var Session = require('express-session');
@@ -35,7 +37,36 @@ var Data = function(baseConfig, callback) {
 	}
 	var mail = nodemailer.createTransport(mailConfig.transport, mailConfig);
 
+	this.uid = hat();
 	this._connection = connection;
+
+	this._passport = new passport.Passport();
+
+	var strategy = new PassportLocalStrategy({
+		usernameField: 'email',
+		passwordField: 'password'
+	}, function(email, password, done) {
+		var User = models['User'];
+
+		User.authenticate(email, password, function(error, user){
+			// You can write any kind of message you'd like.
+			// The message will be displayed on the next page the user visits.
+			// We're currently not displaying any success message for logging in.
+			done(error && error.status != 401 ? error : null, user, error && error.status == 401 ? { message: error.message } : null);
+		});
+	});
+	var authSerializer = function(user, done) {
+		done(null, user.id);
+	};
+	var authDeserializer = function(id, done) {
+		models['User'].findById(id, function(error, user) {
+			done(error, user);
+		});
+	};
+
+	data._passport.use(strategy);
+	data._passport.serializeUser(authSerializer);
+	data._passport.deserializeUser(authDeserializer);
 
 	connection.on('open', function(){
 		data.is.connected = true;
@@ -58,6 +89,7 @@ var Data = function(baseConfig, callback) {
 			    resave: true,
 			    saveUninitialized: false
 			});
+
 			connection.emit('done');
 			data.emit('ready');
 		});
@@ -112,7 +144,7 @@ var Data = function(baseConfig, callback) {
 			connection.close(function(){
 				data.try(databaseConfig, callback);
 			});
-		} else {			
+		} else {
 			connection.open(databaseConfig.host, databaseConfig.database, databaseConfig.port || 27017, databaseConfig.options || {}, callback);
 		}
 	};
@@ -187,37 +219,21 @@ var Data = function(baseConfig, callback) {
 		}
 	}
 	this.passport = function(){
-		var strategy = new PassportLocalStrategy({
-			usernameField: 'email',
-			passwordField: 'password'
-		}, function(email, password, done) {
-			var User = models['User'];
-
-			User.authenticate(email, password, function(error, user){
-				// You can write any kind of message you'd like.
-				// The message will be displayed on the next page the user visits.
-				// We're currently not displaying any success message for logging in.
-				done(error && error.status != 401 ? error : null, user, error && error.status == 401 ? { message: error.message } : null);
-			});
-		});
-		return strategy;
-	}
-	this.serializeUser = function(){
-		var authSerializer = function(user, done) {
-			done(null, user.id);
-		};
-		return authSerializer;
-	}
-	this.deserializeUser = function(){
-		var authDeserializer = function(id, done) {
-			models['User'].findById(id, function(error, user) {
-				done(error, user);
+		return function dataPassport(req, res, next) {
+			if (!data._passport) {
+				next();
+				return;
+			};
+			data._passport.initialize()(req, res, function(){
+				data._passport.session()(req, res, function(){
+					req.passport = data._passport;
+					next();
+				});
 			});
 		};
-		return authDeserializer;
 	}
 	this.session = function(){
-		return function(req, res, next) {
+		return function dataSession(req, res, next) {
 			session(req, res, next);
 		};
 	}
