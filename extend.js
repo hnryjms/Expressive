@@ -101,7 +101,11 @@ var Extend = function(app) {
 
 	this.middleware = function() {
 		return function extendMiddleware(req, res, next) {
-			(function prepare() {
+			(function prepare(prepareError) {
+				if (prepareError) {
+					next(prepareError);
+					return;
+				}
 				if (extend.isReady) {
 					req.data.requireOptions('enabled_extensions')(req, res, function(){
 						var middleware = Object.keys(app.get('extensions')).reduce(function(a, e) {
@@ -139,7 +143,11 @@ var Extend = function(app) {
 
 	this.errorware = function() {
 		return function extendErrorware(error, req, res, next) {
-			(function prepare(){
+			(function prepare(prepareError){
+				if (prepareError) {
+					next(error);
+					return;
+				}
 				if (extend.isReady) {
 					app.get('data').requireOptions('enabled_extensions')(req, res, function(){
 						var middleware = Object.keys(app.get('extensions')).reduce(function(a, e) {
