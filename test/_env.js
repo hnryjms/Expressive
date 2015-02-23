@@ -11,13 +11,14 @@ var data = new Data(dataConfig);
 
 // Setup environment
 
-app.set('data', data);
+var skipDB = process.env.EXP_SKIP_DB;
 
+app.set('data', data);
 
 // Ensure MongoDB connection
 // Clean database before every test
 beforeEach(function(ready) {
-	var isConnectionRequired = (app.get('data').uid == data.uid);
+	var isConnectionRequired = (app.get('data').uid == data.uid) && !skipDB;
 
 	var testData = app.get('data');
 	var cleanDB = function(){
@@ -55,9 +56,9 @@ module.exports = {
 		data: dataConfig
 	},
 	describe: {
-		database: (!process.env.EXP_SKIP_DB ? describe : describe.skip)
+		database: (!skipDB ? describe : describe.skip)
 	},
 	it: {
-		database: (!process.env.EXP_SKIP_DB ? it : it.skip)
+		database: (!skipDB ? it : it.skip)
 	}
 }

@@ -187,7 +187,7 @@ var userTests = function(data) {
 		});
 		describe('authenticate()', function() {
 			it('should exist', function() {
-				expect(User).to.have.key('authenticate');
+				expect(User.authenticate).to.be.a(Function);
 
 				var me = new User();
 				expect(me.authenticate).to.be.a(Function);
