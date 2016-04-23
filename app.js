@@ -36,7 +36,7 @@ var extend = new Extend(app);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -112,7 +112,7 @@ app.use(function appPrepare(req, res, next) {
 	res.locals.enqueuedHeader = [];
 	if (req.user) {
 		res.locals.me = req.user
-		
+
 		res.locals.adminBar = { leftItems: [], rightItems: [] };
 		req._generateAdminBar(req.user);
 	}

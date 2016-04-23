@@ -1,8 +1,8 @@
-extends _layout
+extends _layout.pug
 
 block content
-	- var errors = req.flash('error');
-	- var successes = req.flash('success');
+	- var errors = flash('error');
+	- var successes = flash('success');
 
 	#login-panel.panel(class=errors.length > 0 ? 'panel-danger' : '', class=successes.length > 0 ? 'panel-success' : '', class=errors.length == 0 && successes.length == 0 ? 'panel-default' : '')
 			.panel-heading
@@ -14,18 +14,13 @@ block content
 				each success in successes
 					.alert.alert-success
 						p= success
-				form(method='post', action='/admin/login')
+				form(method='post', action='/admin/forgot')
 					input(type='hidden', name='_csrf', value=req.csrfToken())
-					if next
-						input(type='hidden', name='next', value=next)
 					.form-group
 						label(for='email') Email address
 						input.form-control#email(type='email', name='email', autofocus)
-					.form-group
-						label(for='password') Password
-						input.form-control#password(type='password', name='password')
 					p.text-right
-						a(href='/admin/forgot') Forgot your password?
-						button.btn.btn-primary(type='submit') Login &rarr;
+						a(href='/admin/login') Back to Sign in
+						button.btn.btn-primary(type='submit') Reset &rarr;
 		p.text-center
 			a(href='/')!= "&larr; Return to " + options.title
