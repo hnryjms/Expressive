@@ -280,7 +280,7 @@ var Data = function(baseConfig, callback) {
 		options.text = text;
 
 		if (!options.from) {
-			options.from = '"Expressive" <no-reply@z43studio.com>';
+			options.from = '"Expressive" <no-reply@hnryjms.io>';
 		}
 
 		return mail.sendMail(options);

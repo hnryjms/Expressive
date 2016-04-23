@@ -2,15 +2,15 @@
   "name": "Expressive",
   "version": "0.0.1",
   "authors": [
-    "z43 Studio <hello@z43studio.com>"
+    "Hank Brekke <brekkehj@hnryjms.io>"
   ],
   "description": "CMS in Node",
   "main": "bin/www",
   "keywords": [
     "CMS"
   ],
-  "license": "Copyright 2014",
-  "homepage": "z43studio.com/expressive",
+  "license": "Copyright 2014-2016",
+  "homepage": "hnryjms.com/projects",
   "private": true,
   "ignore": [
     "**/.*",

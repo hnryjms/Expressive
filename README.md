@@ -1,9 +1,9 @@
 # Expressive
 
-[![Build Status](https://travis-ci.org/brekkehj/Expressive.svg?branch=master)](https://travis-ci.org/brekkehj/Expressive)
-[![Dependency Status](https://david-dm.org/brekkehj/Expressive.svg)](https://david-dm.org/brekkehj/Expressive)
-[![devDependency Status](https://david-dm.org/brekkehj/Expressive/dev-status.svg)](https://david-dm.org/brekkehj/Expressive#info=devDependencies)
-[![Coverage Status](https://img.shields.io/coveralls/brekkehj/Expressive.svg)](https://coveralls.io/r/brekkehj/Expressive?branch=master)
+[![Build Status](https://travis-ci.org/hnryjms/Expressive.svg?branch=master)](https://travis-ci.org/hnryjms/Expressive)
+[![Dependency Status](https://david-dm.org/hnryjms/Expressive.svg)](https://david-dm.org/hnryjms/Expressive)
+[![devDependency Status](https://david-dm.org/hnryjms/Expressive/dev-status.svg)](https://david-dm.org/hnryjms/Expressive#info=devDependencies)
+[![Coverage Status](https://img.shields.io/coveralls/hnryjms/Expressive.svg)](https://coveralls.io/r/hnryjms/Expressive?branch=master)
 
 Expressive is a beautiful CMS for [Express](http://expressjs.com) and [Node.js](http://nodejs.org). Expressive is awesome, extendable, themeable, testable and growing.
 
@@ -35,11 +35,11 @@ An example extension is included with Expressive, showing how awesome the extend
 
 ## Contributing
 
-Checkout the [Expressive GitHub Wiki](https://github.com/brekkehj/Expressive/wiki/Development) for more information about the development cycle.
+Checkout the [Expressive GitHub Wiki](https://github.com/hnryjms/Expressive/wiki/Development) for more information about the development cycle.
 
 To make contributions to Expressive, follow the steps below to get your changes in the CMS. My mission with Expressive is to build a largely *extendable* CMS, so try to write code that allows for some awesome extensions around it.
 
-1. Fork the `brekkehj/Expressive` repo
+1. Fork the `hnryjms/Expressive` repo
 1. Commit changes to your fork
 1. Create a pull request back into the original
 1. Win
@@ -61,4 +61,4 @@ You can run tests through npm or through mocha. Both will have the same result.
 
 Expressive is available under the GNU GPL v3.0 License.
 
-See the [LICENSE](https://github.com/brekkehj/Expressive/blob/master/LICENSE) for the more information about the GNU licence legal terms.
+See the [LICENSE](https://github.com/hnryjms/Expressive/blob/master/LICENSE) for the more information about the GNU licence legal terms.
