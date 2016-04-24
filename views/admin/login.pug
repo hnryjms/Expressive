@@ -5,27 +5,27 @@ block content
 	- var successes = req.flash('success');
 
 	#login-panel.panel(class=errors.length > 0 ? 'panel-danger' : '', class=successes.length > 0 ? 'panel-success' : '', class=errors.length == 0 && successes.length == 0 ? 'panel-default' : '')
-			.panel-heading
-				h3.panel-title= options.title
-			.panel-body
-				each error in errors
-					.alert.alert-danger
-						p= error
-				each success in successes
-					.alert.alert-success
-						p= success
-				form(method='post', action='/admin/login')
-					input(type='hidden', name='_csrf', value=req.csrfToken())
-					if next
-						input(type='hidden', name='next', value=next)
-					.form-group
-						label(for='email') Email address
-						input.form-control#email(type='email', name='email', autofocus)
-					.form-group
-						label(for='password') Password
-						input.form-control#password(type='password', name='password')
-					p.text-right
-						a(href='/admin/forgot') Forgot your password?
-						button.btn.btn-primary(type='submit') Login &rarr;
+		.panel-heading
+			h3.panel-title= options.title
+		.panel-body
+			each error in errors
+				.alert.alert-danger
+					p= error
+			each success in successes
+				.alert.alert-success
+					p= success
+			form(method='post', action='/admin/login')
+				input(type='hidden', name='_csrf', value=req.csrfToken())
+				if next
+					input(type='hidden', name='next', value=next)
+				.form-group
+					label(for='email') Email address
+					input.form-control#email(type='email', name='email', autofocus)
+				.form-group
+					label(for='password') Password
+					input.form-control#password(type='password', name='password')
+				p.text-right
+					a(href='/admin/forgot') Forgot your password?
+					button.btn.btn-primary(type='submit') Login &rarr;
 		p.text-center
 			a(href='/')!= "&larr; Return to " + options.title
