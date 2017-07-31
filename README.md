@@ -48,7 +48,7 @@ Make sure to run & write tests for your cool things.
 
 ## Testing
 
-We use the [mocha](http://visionmedia.github.io/mocha/) testing framework. To run tests, first install the module with development dependencies.
+We use the [mocha](http://mochajs.org/) testing framework. To run tests, first install the module with development dependencies.
 
 	$ npm install
 
